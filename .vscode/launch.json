@@ -1,0 +1,17 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    { "name": "Help",     "request": "launch", "type": "dart", "program": "example/ucat.dart", "args": ["-?"] },
+    { "name": "Ad-hoc",   "request": "launch", "type": "dart", "program": "example/ucat.dart", "args": ["-sl", "2", "data/utf.txt"] },
+    { "name": "Stdin",    "request": "launch", "type": "dart", "program": "example/ucat.dart", "args": ["-l", "<", "data/utf.txt" ], "console": "terminal" },
+    { "name": "Plain",    "request": "launch", "type": "dart", "program": "example/ucat.dart", "args": ["-l", "data/utf.txt"] },
+    { "name": "UTF-8",    "request": "launch", "type": "dart", "program": "example/ucat.dart", "args": ["-l", "data/utf8.txt"] },
+    { "name": "UTF-16LE", "request": "launch", "type": "dart", "program": "example/ucat.dart", "args": ["-l", "data/utf16le.txt"] },
+    { "name": "UTF-16BE", "request": "launch", "type": "dart", "program": "example/ucat.dart", "args": ["-l", "data/utf16be.txt"] },
+    { "name": "UTF-32LE", "request": "launch", "type": "dart", "program": "example/ucat.dart", "args": ["-l", "data/utf32le.txt"] },
+    { "name": "UTF-32BE", "request": "launch", "type": "dart", "program": "example/ucat.dart", "args": ["-l", "data/utf32be.txt"] },
+  ]
+}
