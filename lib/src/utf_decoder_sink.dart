@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -47,7 +48,16 @@ class UtfDecoderSink extends ByteConversionSinkBase {
   int get maxCharLength => _maxCharLength;
   int _maxCharLength = 0;
 
+  /// Identifier (path, name, etc.)
+  ///
   final String? id;
+
+  /// Callback to notify about BOM identified
+  ///
+  UtfBomHandler? _onBom;
+
+  /// Associated sink (actual decoder)
+  ///
   Sink? _sink;
 
   /// Kind of UTF
@@ -55,8 +65,13 @@ class UtfDecoderSink extends ByteConversionSinkBase {
   UtfType get type => _type;
   UtfType _type = UtfType.none;
 
-  UtfDecoderSink([this.id, UtfType type = UtfType.none, Sink? sink]) {
-    init(sink, type);
+  UtfDecoderSink(
+      {this.id,
+      UtfBomHandler? onBom,
+      Sink? sink,
+      UtfType type = UtfType.none}) {
+    _onBom = onBom;
+    _init(sink, type);
   }
 
   @override
@@ -86,10 +101,9 @@ class UtfDecoderSink extends ByteConversionSinkBase {
   }
 
   String convert(List<int> source, [int start = 0, int? end]) {
-    if ((_goodLength == 0) && (start == 0) && (_type == UtfType.none)) {
-      final type = UtfType.fromBom(source, source.length);
-      init(_sink, type);
-      start = _type.getBomLength();
+    if ((_goodLength == 0) && (start == 0)) {
+      _init(null, UtfType.fromBom(source, source.length));
+      start = _bomLength;
       _goodLength = start;
     }
 
@@ -220,15 +234,28 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     return String.fromCharCodes(output);
   }
 
-  void init(Sink? sink, [UtfType type = UtfType.none]) {
-    _sink = sink;
-    _type = type;
+  FutureOr<void> _init(Sink? sink, UtfType actualType) async {
+    final isBomRead = ((sink == null) || (sink == _sink));
 
-    _bomLength = _type.getBomLength();
+    if (!isBomRead) {
+      _sink = sink;
+    }
+
+    _bomLength = actualType.getBomLength();
+    _type = (actualType == UtfType.none ? UtfType.fallback : actualType);
+
     _isBigEndianFile = _type.isBigEndian();
     _isFixLenShort = _type.isShortFixedLength();
     _isFixedLength = _type.isFixedLength();
     _maxCharLength = _type.getMaxCharLength();
+
+    if (isBomRead && (_onBom != null)) {
+      if (_onBom is UtfBomHandlerSync) {
+        _onBom!(actualType, false);
+      } else {
+        await _onBom!(actualType, false);
+      }
+    }
   }
 
   void _addCharCode(List<int> output, int charCode, int? min, int? max) {

@@ -88,15 +88,22 @@ Future<void> main(List<String> args) async {
 
 /// Print any chunk of text
 ///
+void catBom(UtfType type, bool isWrite) {
+  print('Byte Order Mark: $type');
+}
+
+/// Print any chunk of text
+///
 VisitResult catChunk(UtfReadParams params) {
-  _logger.out(params.current!);
+  stdout.write(params.current!);
+
   return VisitResult.take;
 }
 
 /// Print any text (a block or a line)
 ///
 VisitResult catLine(UtfReadParams params) {
-  _logger.out(params.current!);
+  print(params.current!);
 
   final maxLineCount = _opts.maxLineCount ?? 0;
   final takenNo = params.takenNo + 1;
@@ -124,15 +131,15 @@ Future<bool> processFile(String path) async {
 
   if (_opts.maxLineCount == null) {
     if (_opts.isSynch) {
-      file.readUtfAsStringSync(onRead: catChunk);
+      file.readUtfAsStringSync(onBom: catBom, onRead: catChunk);
     } else {
-      await file.readUtfAsString(onRead: catChunk);
+      await file.readUtfAsString(onBom: catBom, onRead: catChunk);
     }
   } else {
     if (_opts.isSynch) {
-      file.forEachUtfLineSync(onLine: catLine);
+      file.forEachUtfLineSync(onBom: catBom, onLine: catLine);
     } else {
-      await file.forEachUtfLine(onLine: catLine);
+      await file.forEachUtfLine(onBom: catBom, onLine: catLine);
     }
   }
 
@@ -144,15 +151,15 @@ Future<bool> processFile(String path) async {
 Future<bool> processStdin() async {
   if (_opts.maxLineCount == null) {
     if (_opts.isSynch) {
-      stdin.readUtfAsStringSync(onRead: catChunk);
+      stdin.readUtfAsStringSync(onBom: catBom, onRead: catChunk);
     } else {
-      await stdin.readUtfAsString(onRead: catChunk);
+      await stdin.readUtfAsString(onBom: catBom, onRead: catChunk);
     }
   } else {
     if (_opts.isSynch) {
-      stdin.forEachLineSync(onLine: catLine);
+      stdin.forEachLineSync(onBom: catBom, onLine: catLine);
     } else {
-      await stdin.forEachLine(onLine: catLine);
+      await stdin.forEachLine(onBom: catBom, onLine: catLine);
     }
   }
 
@@ -169,9 +176,10 @@ ${Options.appName} [OPTIONS] [ARGUMENTS]
 
 OPTIONS:
 
--?, -h[elp] - this help screen
--l[ine]     - cat line by line (default: cat chunks of text)
--s[ync[h]]  - cat synchronously
+-?, -h[elp]      - this help screen
+-l[ine] [MAXNUM] - cat line by line (default: cat chunks of text),
+                   limit to MAXNUM (default: no limit)
+-s[ync[h]]       - cat synchronously
 
 ARGUMENTS:
 

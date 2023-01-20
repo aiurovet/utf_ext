@@ -14,22 +14,27 @@ extension UtfFile on File {
   /// Optionally, you can get the list of all lines by passing [pileup]
   ///
   Future<int> forEachUtfLine(
-          {UtfReadHandler? onLine, List<String>? pileup}) async =>
-      await openUtfRead(asLines: true)
+          {UtfBomHandler? onBom,
+          UtfReadHandler? onLine,
+          List<String>? pileup}) async =>
+      await openUtfRead(onBom: onBom, asLines: true)
           .forEachUtfLine(onLine: onLine, pileup: pileup);
 
   /// Loop through every line and call user-defined function (blocking)
   /// Optionally, you can get the list of all lines by passing [pileup]
   ///
-  int forEachUtfLineSync({UtfReadHandlerSync? onLine, List<String>? pileup}) =>
-      openUtfRead(asLines: true)
+  int forEachUtfLineSync(
+          {UtfBomHandlerSync? onBom,
+          UtfReadHandlerSync? onLine,
+          List<String>? pileup}) =>
+      openUtfRead(onBom: onBom, asLines: true)
           .forEachUtfLineSync(onLine: onLine, pileup: pileup);
 
   /// Open stream (from file or stdin) for reading
   ///
-  Stream<String> openUtfRead({bool asLines = false}) {
+  Stream<String> openUtfRead({UtfBomHandler? onBom, bool asLines = false}) {
     final source = openRead();
-    final stream = source.transform(UtfDecoder(path));
+    final stream = source.transform(UtfDecoder(path, onBom: onBom));
 
     return (asLines ? stream.transform(LineSplitter()) : stream);
   }
@@ -39,10 +44,11 @@ extension UtfFile on File {
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   Future<int> readUtfAsString(
-          {UtfReadHandler? onRead,
+          {UtfBomHandler? onBom,
+          UtfReadHandler? onRead,
           StringBuffer? pileup,
           bool stdNewLine = false}) async =>
-      await openUtfRead().readUtfAsString(
+      await openUtfRead(onBom: onBom).readUtfAsString(
           onRead: onRead, pileup: pileup, stdNewLine: stdNewLine);
 
   /// Read the UTF file content (blocking) and convert it to string.\
@@ -50,9 +56,10 @@ extension UtfFile on File {
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   int readUtfAsStringSync(
-          {UtfReadHandlerSync? onRead,
+          {UtfBomHandler? onBom,
+          UtfReadHandlerSync? onRead,
           StringBuffer? pileup,
           bool stdNewLine = false}) =>
-      openUtfRead().readUtfAsStringSync(
+      openUtfRead(onBom: onBom).readUtfAsStringSync(
           onRead: onRead, pileup: pileup, stdNewLine: stdNewLine);
 }

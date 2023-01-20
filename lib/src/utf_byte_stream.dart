@@ -11,6 +11,10 @@ import 'package:utf_ext/utf_ext.dart';
 extension UtfByteStream on Stream<List<int>> {
   /// Open UTF string stream
   ///
-  Stream<String> openUtfStringStream(UtfDecoder decoder) =>
-      LineSplitter().bind(decoder.bind(this));
+  Stream<String> openUtfStringStream(UtfDecoder decoder,
+      {bool asLines = false}) {
+    final stream = decoder.bind(this);
+
+    return (asLines ? LineSplitter().bind(stream) : stream);
+  }
 }

@@ -8,6 +8,10 @@ enum UtfType {
   utf32be,
   utf32le;
 
+  /// How to treat files without BOM
+  ///
+  static var fallback = UtfType.utf8;
+
   /// Determine UTF type based on a sequence of bytes
   ///
   static UtfType fromBom(List<int> buffer, int length) {
@@ -68,12 +72,20 @@ enum UtfType {
 
   /// Get maximum character length
   ///
-  int getMaxCharLength() => ((this == utf16be) || (this == utf16le) ? 2 : 4);
+  int getMaxCharLength() {
+    switch (this == none ? fallback : this) {
+      case UtfType.utf16be:
+      case UtfType.utf16le:
+        return 2;
+      default:
+        return 4;
+    }
+  }
 
   /// A minimum number of bytes representing a character
   ///
   int getMinCharLength() {
-    switch (this) {
+    switch (this == none ? fallback : this) {
       case utf16be:
       case utf16le:
         return 2;
@@ -85,15 +97,40 @@ enum UtfType {
     }
   }
 
-  bool isBigEndian() => ((this == utf16be) || (this == utf32be));
+  bool isBigEndian() {
+    switch (this == none ? fallback : this) {
+      case utf16be:
+      case utf32be:
+        return true;
+      default:
+        return false;
+    }
+  }
 
   /// Flag separating null/UTF-8 and UTF-16/32
   ///
-  bool isFixedLength() => (this != none) && (this != utf8);
+  bool isFixedLength() {
+    switch (this == none ? fallback : this) {
+      case none:
+      case utf8:
+        return false;
+      default:
+        return true;
+    }
+  }
 
-  bool isShortFixedLength() => ((this == utf16be) || (this == utf16le));
+  bool isShortFixedLength() {
+    switch (this == none ? fallback : this) {
+      case utf16be:
+      case utf16le:
+        return true;
+      default:
+        return false;
+    }
+  }
 
   @override
   String toString() =>
-      '${name.substring(0, 3)}-${name.substring(3)}'.toUpperCase();
+      (this == none ? name : '${name.substring(0, 3)}-${name.substring(3)}')
+          .toUpperCase();
 }

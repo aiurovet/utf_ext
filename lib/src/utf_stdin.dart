@@ -16,15 +16,20 @@ extension UtfStdin on Stdin {
   /// Optionally, you can get the list of all lines by passing [lines]
   ///
   Future<int> forEachLine(
-          {UtfReadHandler? onLine, List<String>? pileup}) async =>
-      await openUtfStringStream(UtfDecoder(name))
+          {UtfBomHandler? onBom,
+          UtfReadHandler? onLine,
+          List<String>? pileup}) async =>
+      await openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: true)
           .forEachUtfLine(onLine: onLine, pileup: pileup);
 
   /// Loop through every line and call user-defined function (blocking)
   /// Optionally, you can get the list of all lines by passing [pileup]
   ///
-  int forEachLineSync({UtfReadHandlerSync? onLine, List<String>? pileup}) =>
-      openUtfStringStream(UtfDecoder(name))
+  int forEachLineSync(
+          {UtfBomHandler? onBom,
+          UtfReadHandlerSync? onLine,
+          List<String>? pileup}) =>
+      openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: true)
           .forEachUtfLineSync(onLine: onLine, pileup: pileup);
 
   /// Read stdin content as UTF (non-blocking) and and convert it to string.\
@@ -32,20 +37,24 @@ extension UtfStdin on Stdin {
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   Future<int> readUtfAsString(
-          {UtfReadHandler? onRead,
+          {UtfBomHandler? onBom,
+          UtfReadHandler? onRead,
           StringBuffer? pileup,
           bool stdNewLine = false}) async =>
-      await openUtfStringStream(UtfDecoder(name)).readUtfAsString(
-          onRead: onRead, pileup: pileup, stdNewLine: stdNewLine);
+      await openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: false)
+          .readUtfAsString(
+              onRead: onRead, pileup: pileup, stdNewLine: stdNewLine);
 
   /// Read stdin content as UTF (blocking) and convert it to string.\
   /// If [stdNewLine] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   int readUtfAsStringSync(
-          {UtfReadHandlerSync? onRead,
+          {UtfBomHandler? onBom,
+          UtfReadHandlerSync? onRead,
           StringBuffer? pileup,
           bool stdNewLine = false}) =>
-      openUtfStringStream(UtfDecoder(name)).readUtfAsStringSync(
-          onRead: onRead, pileup: pileup, stdNewLine: stdNewLine);
+      openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: false)
+          .readUtfAsStringSync(
+              onRead: onRead, pileup: pileup, stdNewLine: stdNewLine);
 }
