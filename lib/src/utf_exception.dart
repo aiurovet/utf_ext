@@ -34,6 +34,8 @@ class UtfException implements Exception {
   ///
   String get prefix => 'Malformed ${type.toString()}';
 
+  /// Default constructor
+  ///
   UtfException(
       String? callerId, UtfType? type, this.goodEnding, this.goodLength) {
     callerId = callerId?.trim() ?? '';

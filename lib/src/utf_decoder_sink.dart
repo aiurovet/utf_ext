@@ -65,6 +65,8 @@ class UtfDecoderSink extends ByteConversionSinkBase {
   UtfType get type => _type;
   UtfType _type = UtfType.none;
 
+  /// Default constructor
+  ///
   UtfDecoderSink(
       {this.id,
       UtfBomHandler? onBom,
@@ -74,12 +76,18 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     _init(sink, type);
   }
 
+  /// Implementation of [close]
+  ///
   @override
   void close() => _sink?.close();
 
+  /// Implementation of [add]
+  ///
   @override
   void add(List<int> chunk) => _sink?.add(convert(chunk));
 
+  /// Implementation of [addSlice]
+  ///
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
     var length = chunk.length;
@@ -100,6 +108,8 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     }
   }
 
+  /// Actual byte converter for any type of UTF
+  ///
   String convert(List<int> source, [int start = 0, int? end]) {
     if ((_goodLength == 0) && (start == 0)) {
       _init(null, UtfType.fromBom(source, source.length));
@@ -117,6 +127,8 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     return result;
   }
 
+  /// Actual byte converter for the fixed length UTF (16 or 32)
+  ///
   String _convertFixLenChars(List<int> source, int start, [int? end]) {
     if (_deferred.isNotEmpty) {
       source.insertAll(0, _deferred);
@@ -164,6 +176,8 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     return String.fromCharCodes(output);
   }
 
+  /// Actual byte converter for for the variable length UTF (8)
+  ///
   String _convertVarLenChars(List<int> source, int start, [int? end]) {
     var output = <int>[];
     var b0 = 0, b1 = 0, b2 = 0, b3 = 0, charCode = 0;
@@ -234,6 +248,8 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     return String.fromCharCodes(output);
   }
 
+  /// Initializer, called twice: in the beginning and once BOM found
+  ///
   FutureOr<void> _init(Sink? sink, UtfType actualType) async {
     final isBomRead = ((sink == null) || (sink == _sink));
 
@@ -258,6 +274,8 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     }
   }
 
+  /// Add code unit (rune)
+  ///
   void _addCharCode(List<int> output, int charCode, int? min, int? max) {
     if (((min != null) && (charCode < min)) ||
         ((max != null) && (charCode > max))) {
@@ -276,6 +294,8 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     }
   }
 
+  /// Central point for exception throwing
+  ///
   Never _fail() {
     throw UtfException(id, _type, _goodEnding, _goodLength);
   }
