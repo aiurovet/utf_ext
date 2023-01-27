@@ -25,3 +25,15 @@ typedef UtfReadHandlerSync = VisitHandlerSync<String>;
 /// Type for read parameters
 ///
 typedef UtfReadParams = VisitParams<String>;
+
+/// Called while writing UTF (non-blocking or blocking)
+///
+typedef UtfWriteHandler = VisitHandler<String>;
+
+/// Called while writing UTF (blocking)
+///
+typedef UtfWriteHandlerSync = VisitHandlerSync<String>;
+
+/// Type for write parameters
+///
+typedef UtfWriteParams = VisitParams<String>;

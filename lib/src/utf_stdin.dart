@@ -33,28 +33,28 @@ extension UtfStdin on Stdin {
           .forEachUtfLineSync(onLine: onLine, pileup: pileup);
 
   /// Read stdin content as UTF (non-blocking) and and convert it to string.\
-  /// If [stdNewLine] is set, replace all occurrences of
+  /// If [hasPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   Future<int> readUtfAsString(
           {UtfBomHandler? onBom,
           UtfReadHandler? onRead,
           StringBuffer? pileup,
-          bool stdNewLine = false}) async =>
+          bool hasPosixLineBreaks = false}) async =>
       await openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: false)
           .readUtfAsString(
-              onRead: onRead, pileup: pileup, stdNewLine: stdNewLine);
+              onRead: onRead, pileup: pileup, hasPosixLineBreaks: hasPosixLineBreaks);
 
   /// Read stdin content as UTF (blocking) and convert it to string.\
-  /// If [stdNewLine] is set, replace all occurrences of
+  /// If [hasPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   int readUtfAsStringSync(
           {UtfBomHandler? onBom,
           UtfReadHandlerSync? onRead,
           StringBuffer? pileup,
-          bool stdNewLine = false}) =>
+          bool hasPosixLineBreaks = false}) =>
       openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: false)
           .readUtfAsStringSync(
-              onRead: onRead, pileup: pileup, stdNewLine: stdNewLine);
+              onRead: onRead, pileup: pileup, hasPosixLineBreaks: hasPosixLineBreaks);
 }
