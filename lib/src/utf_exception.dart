@@ -45,7 +45,7 @@ class UtfException implements Exception {
 
   /// Take the last minimum piece of successfully converted text
   ///
-  static String getEnding({String? text, int? maxTailLength}) {
+  static String getEnding(String? text, [int? maxTailLength]) {
     final end = text?.length ?? 0;
 
     if (end <= 0) {
@@ -61,7 +61,7 @@ class UtfException implements Exception {
   /// Actual description
   ///
   String getDescription() {
-    var ending = UtfException.getEnding(text: goodEnding);
+    var ending = UtfException.getEnding(goodEnding);
 
     if (ending.isEmpty) {
       return '$prefix in the beginning';

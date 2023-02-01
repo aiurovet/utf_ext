@@ -1,56 +1,54 @@
 import 'dart:typed_data';
 
 enum UtfType {
+  /// Not defined yet (can use fallback)
+  ///
   none,
+
+  /// Up to 4 bytes per character
+  ///
   utf8,
+
+  /// 2 bytes per character, big endian
+  ///
   utf16be,
+
+  /// 2 bytes per character, little endian
+  ///
   utf16le,
+
+  /// 4 bytes per character, big endian
+  ///
   utf32be,
+
+  /// 4 bytes per character, little endian
+  ///
   utf32le;
 
-  /// How to treat files without BOM
+  /// Const: type to BOM mapping
+  ///
+  static final _bomMap = {
+    none:    noBom,
+    utf8:    Uint8List.fromList(<int>[0xEF, 0xBB, 0xBF]),
+    utf16be: Uint8List.fromList(<int>[0xFE, 0xFF]),
+    utf16le: Uint8List.fromList(<int>[0xFF, 0xFE]),
+    utf32be: Uint8List.fromList(<int>[0x00, 0x00, 0xFE, 0xFF]),
+    utf32le: Uint8List.fromList(<int>[0xFF, 0xFE, 0x00, 0x00]),
+  };
+
+  /// Const: type to BOM mapping
+  ///
+  static final noBom = Uint8List.fromList(<int>[]);
+
+  /// How to treat files or streams without BOM
   ///
   static var fallback = UtfType.utf8;
 
   /// Determine UTF type based on a sequence of bytes
   ///
   static UtfType fromBom(List<int> buffer, int length) {
-    if (length <= 0) {
-      return UtfType.none;
-    }
-
     final bom = Uint8List.fromList(buffer);
-
-    switch (bom[0]) {
-      case 0x00:
-        if ((length < 2) || bom[1] != 0x00) {
-          return UtfType.none;
-        }
-        if ((length >= 4) && (bom[2] == 0xFE) && (bom[3] == 0xFF)) {
-          return UtfType.utf32be;
-        }
-        return UtfType.none;
-      case 0xEF:
-        if ((length < 3) || (bom[1] != 0xBB) || (bom[2] != 0xBF)) {
-          return UtfType.none;
-        }
-        return UtfType.utf8;
-      case 0xFE:
-        if ((length < 2) || (bom[1] != 0xFF)) {
-          return UtfType.none;
-        }
-        return UtfType.utf16be;
-      case 0xFF:
-        if ((length < 2) || (bom[1] != 0xFE)) {
-          return UtfType.none;
-        }
-        if ((length >= 4) && (bom[2] == 0x00) && (bom[3] == 0x00)) {
-          return UtfType.utf32le;
-        }
-        return UtfType.utf16le;
-      default:
-        return UtfType.none;
-    }
+    return _bomMap.keys.firstWhere((x) => _bomMap[x] == bom, orElse: () => none);
   }
 
   /// Get BOM length
@@ -70,7 +68,7 @@ enum UtfType {
     }
   }
 
-  /// Get maximum character length
+  /// Get maximum number of bytes representing a character
   ///
   int getMaxCharLength() {
     switch (this == none ? fallback : this) {
@@ -82,7 +80,7 @@ enum UtfType {
     }
   }
 
-  /// A minimum number of bytes representing a character
+  /// Get minimum number of bytes representing a character
   ///
   int getMinCharLength() {
     switch (this == none ? fallback : this) {
@@ -97,6 +95,8 @@ enum UtfType {
     }
   }
 
+  /// Check the endianness
+  ///
   bool isBigEndian() {
     switch (this == none ? fallback : this) {
       case utf16be:
@@ -107,7 +107,7 @@ enum UtfType {
     }
   }
 
-  /// Flag separating null/UTF-8 and UTF-16/32
+  /// Flag separating none/UTF-8 and UTF-16/32
   ///
   bool isFixedLength() {
     switch (this == none ? fallback : this) {
@@ -119,6 +119,8 @@ enum UtfType {
     }
   }
 
+  /// Check whether this is a 2-byte Unicode
+  ///
   bool isShortFixedLength() {
     switch (this == none ? fallback : this) {
       case utf16be:
@@ -129,6 +131,17 @@ enum UtfType {
     }
   }
 
+  /// Convert type to BOM
+  ///
+  Uint8List toBom({bool useFallback = false}) =>
+      _bomMap[useFallback && (this == none) ? fallback : this]!;
+
+  /// Convert type to BOM
+  ///
+  UtfType toFinal() => (this == none ? fallback : this);
+
+  /// Serialize
+  ///
   @override
   String toString() =>
       (this == none ? name : '${name.substring(0, 3)}-${name.substring(3)}')

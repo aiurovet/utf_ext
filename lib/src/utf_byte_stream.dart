@@ -9,7 +9,7 @@ import 'package:utf_ext/utf_ext.dart';
 /// of the Unicode encodings: UTF-8, UTF-16, UTF-32
 ///
 extension UtfByteStream on Stream<List<int>> {
-  /// Open UTF string stream
+  /// Open string stream
   ///
   Stream<String> openUtfStringStream(UtfDecoder decoder,
       {bool asLines = false}) {

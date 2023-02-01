@@ -10,6 +10,8 @@ import 'package:utf_ext/utf_ext.dart';
 /// of the Unicode encodings: UTF-8, UTF-16, UTF-32
 ///
 extension UtfFile on File {
+  bool get isPosixFileSystem => fileSystem.path.separator == '/';
+
   /// Loop through every line and call user-defined function (non-blocking)
   /// Optionally, you can get the list of all lines by passing [pileup]
   ///
@@ -40,26 +42,26 @@ extension UtfFile on File {
   }
 
   /// Read the UTF file content (non-blocking) and and convert it to string.\
-  /// If [hasPosixLineBreaks] is set, replace all occurrences of
+  /// If [withPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   Future<int> readUtfAsString(
           {UtfBomHandler? onBom,
           UtfReadHandler? onRead,
           StringBuffer? pileup,
-          bool hasPosixLineBreaks = false}) async =>
+          bool? withPosixLineBreaks = true}) async =>
       await openUtfRead(onBom: onBom).readUtfAsString(
-          onRead: onRead, pileup: pileup, hasPosixLineBreaks: hasPosixLineBreaks);
+          onRead: onRead, pileup: pileup, withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
 
   /// Read the UTF file content (blocking) and convert it to string.\
-  /// If [hasPosixLineBreaks] is set, replace all occurrences of
+  /// If [withPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   int readUtfAsStringSync(
           {UtfBomHandler? onBom,
           UtfReadHandlerSync? onRead,
           StringBuffer? pileup,
-          bool hasPosixLineBreaks = false}) =>
+          bool? withPosixLineBreaks = true}) =>
       openUtfRead(onBom: onBom).readUtfAsStringSync(
-          onRead: onRead, pileup: pileup, hasPosixLineBreaks: hasPosixLineBreaks);
+          onRead: onRead, pileup: pileup, withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
 }

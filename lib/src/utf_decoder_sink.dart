@@ -31,13 +31,13 @@ class UtfDecoderSink extends ByteConversionSinkBase {
 
   /// Flag indicating the stream is in big-endian format
   ///
-  bool get isBigEndianFile => _isBigEndianFile;
-  bool _isBigEndianFile = false;
+  bool get isBigEndianData => _isBigEndianData;
+  bool _isBigEndianData = false;
 
   /// Flag indicating the stream is in UTF-16 format (BE or LE)
   ///
-  bool get isFixLenShort => _isFixLenShort;
-  bool _isFixLenShort = false;
+  bool get isFixedLengthShort => _isFixedLengthShort;
+  bool _isFixedLengthShort = false;
 
   /// Flag indicating the stream is UTF-8
   ///
@@ -108,7 +108,7 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     }
   }
 
-  /// Actual byte converter for any type of UTF
+  /// Actual bytes to string converter for any type of UTF
   ///
   String convert(List<int> source, [int start = 0, int? end]) {
     if ((_goodLength == 0) && (start == 0)) {
@@ -118,18 +118,18 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     }
 
     var result = _isFixedLength
-        ? _convertFixLenChars(source, start, end)
-        : _convertVarLenChars(source, start, end);
+        ? _convertFixLen(source, start, end)
+        : _convertVarLen(source, start, end);
 
-    _goodEnding = UtfException.getEnding(text: result);
+    _goodEnding = UtfException.getEnding(result);
     _goodLength += source.length;
 
     return result;
   }
 
-  /// Actual byte converter for the fixed length UTF (16 or 32)
+  /// Actual bytes to string converter for the fixed length UTF (16 or 32)
   ///
-  String _convertFixLenChars(List<int> source, int start, [int? end]) {
+  String _convertFixLen(List<int> source, int start, [int? end]) {
     if (_deferred.isNotEmpty) {
       source.insertAll(0, _deferred);
       _deferred.clear();
@@ -153,8 +153,8 @@ class UtfDecoderSink extends ByteConversionSinkBase {
 
       var charCode = 0;
 
-      if (_isFixLenShort) {
-        if (_isBigEndianFile) {
+      if (_isFixedLengthShort) {
+        if (_isBigEndianData) {
           charCode = (b0 << 8) | b1;
         } else {
           charCode = (b1 << 8) | b0;
@@ -163,7 +163,7 @@ class UtfDecoderSink extends ByteConversionSinkBase {
         b2 = source[cur++];
         b3 = source[cur++];
 
-        if (_isBigEndianFile) {
+        if (_isBigEndianData) {
           charCode = (b0 << 24) | (b1 << 16) | (b2 << 8) | b3;
         } else {
           charCode = (b3 << 24) | (b2 << 16) | (b1 << 8) | b0;
@@ -176,9 +176,9 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     return String.fromCharCodes(output);
   }
 
-  /// Actual byte converter for for the variable length UTF (8)
+  /// Actual bytes to string converter for for the variable length UTF (8)
   ///
-  String _convertVarLenChars(List<int> source, int start, [int? end]) {
+  String _convertVarLen(List<int> source, int start, [int? end]) {
     var output = <int>[];
     var b0 = 0, b1 = 0, b2 = 0, b3 = 0, charCode = 0;
 
@@ -250,26 +250,26 @@ class UtfDecoderSink extends ByteConversionSinkBase {
 
   /// Initializer, called twice: in the beginning and once BOM found
   ///
-  FutureOr<void> _init(Sink? sink, UtfType actualType) async {
-    final isBomRead = ((sink == null) || (sink == _sink));
+  FutureOr<void> _init(Sink? sink, UtfType finalType) async {
+    final isBomDone = ((sink == null) || (sink == _sink));
 
-    if (!isBomRead) {
+    if (!isBomDone) {
       _sink = sink;
     }
 
-    _bomLength = actualType.getBomLength();
-    _type = (actualType == UtfType.none ? UtfType.fallback : actualType);
+    _bomLength = finalType.getBomLength();
+    _type = (finalType == UtfType.none ? UtfType.fallback : finalType);
 
-    _isBigEndianFile = _type.isBigEndian();
-    _isFixLenShort = _type.isShortFixedLength();
+    _isBigEndianData = _type.isBigEndian();
+    _isFixedLengthShort = _type.isShortFixedLength();
     _isFixedLength = _type.isFixedLength();
     _maxCharLength = _type.getMaxCharLength();
 
-    if (isBomRead && (_onBom != null)) {
+    if (isBomDone && (_onBom != null)) {
       if (_onBom is UtfBomHandlerSync) {
-        _onBom!(actualType, false);
+        _onBom!(finalType, false);
       } else {
-        await _onBom!(actualType, false);
+        await _onBom!(finalType, false);
       }
     }
   }

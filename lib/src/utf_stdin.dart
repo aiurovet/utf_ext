@@ -8,6 +8,8 @@ import 'package:utf_ext/utf_ext.dart';
 /// Class for the formatted output
 ///
 extension UtfStdin on Stdin {
+  bool get isPosixOS => !Platform.isWindows;
+
   /// Const: name for stdin
   ///
   static const name = '<stdin>';
@@ -33,28 +35,28 @@ extension UtfStdin on Stdin {
           .forEachUtfLineSync(onLine: onLine, pileup: pileup);
 
   /// Read stdin content as UTF (non-blocking) and and convert it to string.\
-  /// If [hasPosixLineBreaks] is set, replace all occurrences of
+  /// If [withPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   Future<int> readUtfAsString(
           {UtfBomHandler? onBom,
           UtfReadHandler? onRead,
           StringBuffer? pileup,
-          bool hasPosixLineBreaks = false}) async =>
+          bool? withPosixLineBreaks = true}) async =>
       await openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: false)
           .readUtfAsString(
-              onRead: onRead, pileup: pileup, hasPosixLineBreaks: hasPosixLineBreaks);
+              onRead: onRead, pileup: pileup, withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
 
   /// Read stdin content as UTF (blocking) and convert it to string.\
-  /// If [hasPosixLineBreaks] is set, replace all occurrences of
+  /// If [withPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   int readUtfAsStringSync(
           {UtfBomHandler? onBom,
           UtfReadHandlerSync? onRead,
           StringBuffer? pileup,
-          bool hasPosixLineBreaks = false}) =>
+          bool? withPosixLineBreaks = true}) =>
       openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: false)
           .readUtfAsStringSync(
-              onRead: onRead, pileup: pileup, hasPosixLineBreaks: hasPosixLineBreaks);
+              onRead: onRead, pileup: pileup, withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
 }
