@@ -2,8 +2,6 @@
 // All rights reserved under MIT license (see LICENSE file)
 
 import 'dart:async';
-import 'dart:io';
-import 'package:file/file.dart';
 import 'package:loop_visitor/loop_visitor.dart';
 import 'package:utf_ext/utf_ext.dart';
 
@@ -23,7 +21,9 @@ extension UtfStringStream on Stream<String> {
   static const lineBreakWin = '\r\n';
 
   /// Loop through every line and call user-defined function (non-blocking)
-  /// Optionally, you can get the list of all lines by passing [lines]
+  /// Optionally, you can get the list of all lines by passing [lines].\
+  /// \
+  /// Return the number of lines read.
   ///
   Future<int> forEachUtfLine(
       {UtfReadHandler? onLine, List<String>? pileup}) async {
@@ -56,7 +56,9 @@ extension UtfStringStream on Stream<String> {
   }
 
   /// Loop through every line and call user-defined function (blocking)
-  /// Optionally, you can get the list of all lines by passing [pileup]
+  /// Optionally, you can get the list of all lines by passing [pileup]\
+  /// \
+  /// Return the number of lines read.
   ///
   int forEachUtfLineSync({UtfReadHandlerSync? onLine, List<String>? pileup}) {
     pileup?.clear();
@@ -90,20 +92,28 @@ extension UtfStringStream on Stream<String> {
   }
 
   /// Replace all occurrences of POSIX line breaks with the Windows ones
+  /// without affecting the existing Windows line breaks
   ///
   static String fromPosixLineBreaks(String input) =>
-    input = input.replaceAll(lineBreak, lineBreakWin);
+    input
+      .replaceAll(UtfStringStream.lineBreakWin, '\x01')
+      .replaceAll(UtfStringStream.lineBreak, UtfStringStream.lineBreakWin)
+      .replaceAll('\x01', UtfStringStream.lineBreakWin);
 
   /// Read the UTF file content (non-blocking) and and convert it to string.\
   /// If [withPosixLineBreaks] is set, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one
+  /// Windows- and Mac-specific line break with the UNIX one.\
+  /// \
+  /// Return the wole content if [pileup] is null or empty string otherwise.
   ///
-  Future<int> readUtfAsString(
+  Future<String> readUtfAsString(
       {UtfReadHandler? onRead,
       StringBuffer? pileup,
       bool withPosixLineBreaks = true}) async {
+    var output = (pileup ?? StringBuffer())..clear();
+
     final isSyncCall = (onRead is UtfReadHandlerSync);
-    final params = UtfReadParams(isSyncCall: isSyncCall, extra: pileup);
+    final params = UtfReadParams(isSyncCall: isSyncCall, extra: output);
     var result = VisitResult.take;
 
     await for (var buffer in this) {
@@ -116,7 +126,7 @@ extension UtfStringStream on Stream<String> {
 
       if ((result == VisitResult.take) || (result == VisitResult.takeAndStop)) {
         ++params.takenNo;
-        pileup?.write(params.current);
+        output.write(params.current);
       }
 
       if ((result == VisitResult.takeAndStop) ||
@@ -125,19 +135,25 @@ extension UtfStringStream on Stream<String> {
       }
     }
 
-    return params.takenNo;
+    return (pileup == null ? output.toString() : '');
   }
 
   /// Read the UTF file content (blocking) and convert it to string.\
   /// If [withPosixLineBreaks] is set, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one
+  /// Windows- and Mac-specific line break with the UNIX one\
+  /// \
+  /// Return the wole content if [pileup] is null or empty string otherwise.
   ///
-  int readUtfAsStringSync(
+  String readUtfAsStringSync(
       {UtfReadHandlerSync? onRead,
       StringBuffer? pileup,
       bool withPosixLineBreaks = true}) {
-    final params = UtfReadParams(isSyncCall: true, extra: pileup);
+    var output = (pileup ?? StringBuffer())..clear();
+
+    final params = UtfReadParams(isSyncCall: true, extra: output);
     var result = VisitResult.take;
+
+    output.clear();
 
     any((chunk) {
       ++params.currentNo;
@@ -149,7 +165,7 @@ extension UtfStringStream on Stream<String> {
 
       if ((result == VisitResult.take) || (result == VisitResult.takeAndStop)) {
         ++params.takenNo;
-        pileup?.write(params.current);
+        output.write(params.current);
       }
 
       if ((result == VisitResult.takeAndStop) ||
@@ -160,109 +176,14 @@ extension UtfStringStream on Stream<String> {
       return false;
     });
 
-    return params.takenNo;
+    return (pileup == null ? output.toString() : '');
   }
 
   /// Replace all occurrences of Windows and old Mac specific
   /// line breaks with the POSIX ones
   ///
-  static String toPosixLineBreaks(String input) {
-    input = input.replaceAll(lineBreakWin, lineBreak);
-    input = input.replaceAll(lineBreakMac, lineBreak);
-
-    return input;
-  }
-
-  /// Convert string to a sequence of UTF bytes and write that to [sink] (non-blocking).\
-  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
-  /// the Windows-specific ones
-  ///
-  Future<int> writeAsUtf(
-      IOSink sink,
-      UtfEncoder encoder,
-      {dynamic extra,
-      UtfWriteHandler? onWrite,
-      bool withPosixLineBreaks = true}) async {
-    final isSyncCall = (onWrite is UtfWriteHandlerSync);
-    final params = UtfWriteParams(isSyncCall: isSyncCall, extra: extra);
-    var result = VisitResult.take;
-
-    await for (var buffer in this) {
-      result = await writeUtfChunk(sink, encoder, buffer, params: params, withPosixLineBreaks: withPosixLineBreaks);
-
-      if ((result == VisitResult.takeAndStop) ||
-          (result == VisitResult.skipAndStop)) {
-        break;
-      }
-    }
-
-    return params.takenNo;
-  }
-
-  /// Convert string to a sequence of UTF bytes and write that to [sink] (non-blocking).\
-  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
-  /// the Windows-specific ones
-  ///
-  Future<VisitResult> writeUtfChunk(
-      IOSink sink,
-      UtfEncoder encoder,
-      String chunk,
-      {UtfWriteHandler? onWrite,
-      UtfWriteParams? params,
-      bool withPosixLineBreaks = true}) async {
-    final isSyncCall = params?.isSyncCall ?? (onWrite is UtfWriteHandlerSync);
-    FutureOr<VisitResult> result = VisitResult.take;
-
-    ++params?.currentNo;
-
-    if (withPosixLineBreaks) {
-      chunk = fromPosixLineBreaks(chunk);
-    }
-
-    params?.current = chunk;
-
-    if ((onWrite != null) && (params != null)) {
-      result = (isSyncCall ? onWrite(params) : await onWrite(params));
-    }
-
-    if ((result == VisitResult.take) || (result == VisitResult.takeAndStop)) {
-      ++params?.takenNo;
-      sink.write(encoder.convert(chunk));
-    }
-
-    return result;
-  }
-
-  /// Convert string to a sequence of UTF bytes and write that to [sink] (blocking).\
-  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
-  /// the Windows-specific ones
-  ///
-  Future<VisitResult> writeUtfChunkSync(
-      IOSink sink,
-      UtfEncoder encoder,
-      String chunk,
-      {UtfWriteHandlerSync? onWrite,
-      UtfWriteParams? params,
-      bool withPosixLineBreaks = true}) async {
-    var result = VisitResult.take;
-
-    ++params?.currentNo;
-
-    if (withPosixLineBreaks) {
-      chunk = fromPosixLineBreaks(chunk);
-    }
-
-    params?.current = chunk;
-
-    if ((onWrite != null) && (params != null)) {
-      result = onWrite(params);
-    }
-
-    if ((result == VisitResult.take) || (result == VisitResult.takeAndStop)) {
-      ++params?.takenNo;
-      sink.write(encoder.convert(chunk));
-    }
-
-    return result;
-  }
+  static String toPosixLineBreaks(String input) =>
+    input
+      .replaceAll(lineBreakWin, lineBreak)
+      .replaceAll(lineBreakMac, lineBreak);
 }

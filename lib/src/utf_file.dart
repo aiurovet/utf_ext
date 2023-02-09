@@ -3,6 +3,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:file/file.dart' show File;
 import 'package:utf_ext/utf_ext.dart';
 
@@ -45,7 +46,7 @@ extension UtfFile on File {
   /// If [withPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
-  Future<int> readUtfAsString(
+  Future<String> readUtfAsString(
           {UtfBomHandler? onBom,
           UtfReadHandler? onRead,
           StringBuffer? pileup,
@@ -57,11 +58,65 @@ extension UtfFile on File {
   /// If [withPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
-  int readUtfAsStringSync(
+  String readUtfAsStringSync(
           {UtfBomHandler? onBom,
           UtfReadHandlerSync? onRead,
           StringBuffer? pileup,
           bool? withPosixLineBreaks = true}) =>
       openUtfRead(onBom: onBom).readUtfAsStringSync(
           onRead: onRead, pileup: pileup, withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
+
+  /// Convert a list of strings to a sequence of UTF bytes and write those to [sink] (non-blocking).\
+  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
+  /// the Windows-specific ones
+  ///
+  Future<void> writeUtfAsLines(
+    List<String> lines,
+    {FileMode mode = FileMode.write,
+    UtfWriteHandler? onWrite,
+    UtfType type = UtfType.none,
+    bool? withBom,
+    bool withPosixLineBreaks = true}) async =>
+    await openWrite(mode: mode)
+      .writeUtfAsLines(path, lines, type: type, onWrite: onWrite, withBom: withBom, withPosixLineBreaks: withPosixLineBreaks);
+
+  /// Convert a list of strings to a sequence of UTF bytes and write those to [sink] (non-blocking).\
+  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
+  /// the Windows-specific ones
+  ///
+  void writeUtfAsLinesSync(
+    List<String> lines,
+    {FileMode mode = FileMode.write,
+    UtfWriteHandlerSync? onWrite,
+    UtfType type = UtfType.none,
+    bool? withBom,
+    bool withPosixLineBreaks = true}) =>
+    openWrite(mode: mode)
+      .writeUtfAsLinesSync(path, lines, type: type, onWrite: onWrite, withBom: withBom, withPosixLineBreaks: withPosixLineBreaks);
+
+  /// Read the UTF file content (non-blocking) and and convert it to string.\
+  /// If [withPosixLineBreaks] is set, replace all occurrences of
+  /// Windows- and Mac-specific line break with the UNIX one
+  ///
+  Future<void> writeUtfAsString(
+          String content,
+          {FileMode mode = FileMode.write,
+          UtfType type = UtfType.utf8,
+          bool? withBom,
+          bool? withPosixLineBreaks = true}) async =>
+    await openWrite(mode: mode)
+      .writeUtfAsString(path, content, type: type, withBom: withBom, withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
+
+  /// Read the UTF file content (blocking) and and convert it to string.\
+  /// If [withPosixLineBreaks] is set, replace all occurrences of
+  /// Windows- and Mac-specific line break with the UNIX one
+  ///
+  void writeUtfAsStringSync(
+          String content,
+          {FileMode mode = FileMode.write,
+          UtfType type = UtfType.utf8,
+          bool? withBom,
+          bool? withPosixLineBreaks = true}) =>
+    openWrite(mode: mode)
+      .writeUtfAsStringSync(path, content, type: type, withBom: withBom, withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
 }

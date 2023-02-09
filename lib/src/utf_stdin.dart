@@ -38,7 +38,7 @@ extension UtfStdin on Stdin {
   /// If [withPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
-  Future<int> readUtfAsString(
+  Future<String> readUtfAsString(
           {UtfBomHandler? onBom,
           UtfReadHandler? onRead,
           StringBuffer? pileup,
@@ -51,7 +51,7 @@ extension UtfStdin on Stdin {
   /// If [withPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
-  int readUtfAsStringSync(
+  String readUtfAsStringSync(
           {UtfBomHandler? onBom,
           UtfReadHandlerSync? onRead,
           StringBuffer? pileup,

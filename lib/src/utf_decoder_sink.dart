@@ -112,7 +112,7 @@ class UtfDecoderSink extends ByteConversionSinkBase {
   ///
   String convert(List<int> source, [int start = 0, int? end]) {
     if ((_goodLength == 0) && (start == 0)) {
-      _init(null, UtfType.fromBom(source, source.length));
+      _init(null, UtfType.fromBom(source));
       start = _bomLength;
       _goodLength = start;
     }
@@ -257,13 +257,13 @@ class UtfDecoderSink extends ByteConversionSinkBase {
       _sink = sink;
     }
 
-    _bomLength = finalType.getBomLength();
-    _type = (finalType == UtfType.none ? UtfType.fallback : finalType);
+    _bomLength = finalType.getBomLength(false);
+    _type = (finalType == UtfType.none ? UtfType.fallbackForRead : finalType);
 
-    _isBigEndianData = _type.isBigEndian();
-    _isFixedLengthShort = _type.isShortFixedLength();
-    _isFixedLength = _type.isFixedLength();
-    _maxCharLength = _type.getMaxCharLength();
+    _isBigEndianData = _type.isBigEndian(false);
+    _isFixedLengthShort = _type.isFixedLengthShort(false);
+    _isFixedLength = _type.isFixedLength(false);
+    _maxCharLength = _type.getMaxCharLength(false);
 
     if (isBomDone && (_onBom != null)) {
       if (_onBom is UtfBomHandlerSync) {

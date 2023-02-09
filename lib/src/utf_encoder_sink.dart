@@ -30,18 +30,16 @@ class UtfEncoderSink extends StringConversionSinkBase {
   bool get isFixedLengthShort => _isFixedLengthShort;
   bool _isFixedLengthShort = false;
 
-  /// Flag indicating the stream is UTF-8
+  /// Flag indicating the stream is in UTF-16 or UTF-32 format (BE or LE)
+  /// Will be set to false after the first chunk conversion
   ///
+  bool get isFixedLength => _isFixedLength;
   var _isFixedLength = false;
 
   /// Character length (2 for UTF-16, and 4 for UTF-8 and UTF-32)
   ///
   int get maxCharLength => _maxCharLength;
   int _maxCharLength = 0;
-
-  /// Callback to notify about BOM identified
-  ///
-  UtfBomHandler? _onBom;
 
   /// Associated sink (actual encoder)
   ///
@@ -52,15 +50,18 @@ class UtfEncoderSink extends StringConversionSinkBase {
   UtfType get type => _type;
   UtfType _type = UtfType.none;
 
+  /// Flag indicating BOM is required to precede the actual bytes
+  ///
+  var _withBom = true;
+
   /// Default constructor
   ///
   UtfEncoderSink(
       {this.id,
-      UtfBomHandler? onBom,
       Sink? sink,
-      UtfType type = UtfType.none}) {
-    _onBom = onBom;
-    _init(sink, type);
+      UtfType type = UtfType.none,
+      bool withBom = true}) {
+    _init(sink, type, withBom);
   }
 
   /// Implementation of [close]
@@ -101,9 +102,12 @@ class UtfEncoderSink extends StringConversionSinkBase {
       source = source.substring(start, end);
     }
 
-    final output = (start == 0 ? _type.toBom() : UtfType.noBom);
-    final isFixLen = _type.isFixedLength();
-    final isShort = _type.isShortFixedLength();
+    final output = (_withBom && (start == 0) ? _type.toBom(true) : UtfType.emptyBom).toList();
+
+    _withBom = false;
+
+    final isFixLen = _type.isFixedLength(true);
+    final isShort = _type.isFixedLengthShort(true);
 
     final charCodes = (isShort
       ? source.codeUnits
@@ -111,7 +115,7 @@ class UtfEncoderSink extends StringConversionSinkBase {
 
     if (_isFixedLengthShort && (_isBigEndianData == isBigEndianHost)) {
       output.addAll(charCodes);
-      return output;
+      return Uint8List.fromList(output);
     }
 
     len = charCodes.length;
@@ -156,33 +160,24 @@ class UtfEncoderSink extends StringConversionSinkBase {
       }
     }
 
-    return output;
+    return Uint8List.fromList(output);
   }
 
   /// Initializer, called twice: in the beginning and once BOM found
   ///
-  FutureOr<void> _init(Sink? sink, UtfType finalType) async {
-    final isBomDone = ((sink == null) || (sink == _sink));
-
-    if (!isBomDone) {
+  FutureOr<void> _init(Sink? sink, UtfType finalType, bool withBom) async {
+    if (sink != null) {
       _sink = sink;
     }
 
-    _bomLength = finalType.getBomLength();
-    _type = (finalType == UtfType.none ? UtfType.fallback : finalType);
+    _bomLength = finalType.getBomLength(true);
+    _type = (finalType == UtfType.none ? UtfType.fallbackForWrite : finalType);
+    _withBom = withBom;
 
-    _isBigEndianData = _type.isBigEndian();
-    _isFixedLength = _type.isFixedLength();
-    _isFixedLengthShort = _type.isShortFixedLength();
-    _maxCharLength = _type.getMaxCharLength();
-
-    if (isBomDone && (_onBom != null)) {
-      if (_onBom is UtfBomHandlerSync) {
-        _onBom!(finalType, false);
-      } else {
-        await _onBom!(finalType, false);
-      }
-    }
+    _isBigEndianData = _type.isBigEndian(true);
+    _isFixedLength = _type.isFixedLength(true);
+    _isFixedLengthShort = _type.isFixedLengthShort(true);
+    _maxCharLength = _type.getMaxCharLength(true);
   }
 
   /// Central point for exception throwing
