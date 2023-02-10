@@ -1,6 +1,7 @@
 // Copyright (c) 2023, Alexander Iurovetski
 // All rights reserved under MIT license (see LICENSE file)
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:file/local.dart';
@@ -34,7 +35,7 @@ class Options {
 
   /// Option flag: read file line by line synchronously
   ///
-  var isSynch = false;
+  var isSyncCall = false;
 
   /// Read file or stdin line by line when value != null,
   /// and limit to the number of lines when value > 0
@@ -49,7 +50,7 @@ class Options {
   ///
   void parse(List<String> args) {
     var optDefs = '''
-      |?,h,help|q,quiet|v,verbose|l,line:?|s,sync,synch|t,to:|::?
+      |?,h,help|q,quiet|v,verbose|l,line:?|s,sync|t,to:|::?
     ''';
 
     var o = parseArgs(optDefs, args);
@@ -61,12 +62,48 @@ class Options {
     }
 
     maxLineCount = o.getIntValue('l');
-    isSynch = o.isSet('s');
+    isSyncCall = o.isSet('s');
     toType = UtfType.parse(o.getStrValue('t'), UtfType.fallbackForWrite);
 
     paths.addAll(o.getStrValues(''));
     paths.removeWhere((x) => x.trim().isEmpty);
   }
+}
+
+/// Data for writing the output in chunks upon each read
+///
+class OutInfo {
+  /// Target sink
+  ///
+  final IOSink sink;
+
+  /// Encoder
+  ///
+  late final UtfEncoder encoder;
+
+  /// Default constructor
+  ///
+  OutInfo(String id, this.sink, {UtfType type = UtfType.none}) {
+    encoder = UtfEncoder(id, sink: sink, type: type);
+  }
+
+  /// Destruction (non-blocking)
+  ///
+  Future<void> flushAndClose() async => await sink.flushAndClose();
+
+  /// Destruction (blocking)
+  ///
+  void flushAndCloseSync() => sink.flushAndClose();
+
+  /// Write piece of data (non-blocking)
+  ///
+  Future<void> writeUtfChunk(UtfReadExtraParams? params) async =>
+      await sink.writeUtfChunk(encoder, params!.buffer!);
+
+  /// Write piece of data (blocking)
+  ///
+  void writeUtfChunkSync(UtfReadExtraParams? params) =>
+      sink.writeUtfChunkSync(encoder, params!.buffer!);
 }
 
 /// Entry point
@@ -89,18 +126,42 @@ Future<void> main(List<String> args) async {
   }
 }
 
-/// Print any chunk of text
+/// Write any chunk of text to the output sink (non-blocing)
 ///
-VisitResult convChunk(UtfReadParams params) {
+Future<VisitResult> convChunk(UtfReadParams params) async {
+  await (params.extra as OutInfo).writeUtfChunk(params.current);
+
   return VisitResult.take;
 }
 
-/// Print any text (a block or a line)
+/// Write any chunk of text to the output sink (non-blocing)
 ///
-VisitResult convLine(UtfReadParams params) {
+VisitResult convChunkSync(UtfReadParams params) {
+  (params.extra as OutInfo).writeUtfChunkSync(params.current);
+
+  return VisitResult.take;
+}
+
+/// Write a line of text to the output sink (non-blocing)
+///
+FutureOr<VisitResult> convLine(UtfReadParams params) async {
   final maxLineCount = _opts.maxLineCount ?? 0;
   final takenNo = params.takenNo + 1;
   final canStop = ((maxLineCount > 0) && (takenNo >= maxLineCount));
+
+  (params.extra as OutInfo).writeUtfChunkSync(params.current);
+
+  return (canStop ? VisitResult.takeAndStop : VisitResult.take);
+}
+
+/// Write a line of text to the output sink (non-blocing)
+///
+VisitResult convLineSync(UtfReadParams params) {
+  final maxLineCount = _opts.maxLineCount ?? 0;
+  final takenNo = params.takenNo + 1;
+  final canStop = ((maxLineCount > 0) && (takenNo >= maxLineCount));
+
+  (params.extra as OutInfo).writeUtfChunkSync(params.current);
 
   return (canStop ? VisitResult.takeAndStop : VisitResult.take);
 }
@@ -114,83 +175,67 @@ Never onFailure(dynamic e) {
 
 /// Process single file
 ///
-Future<bool> processFile(String path) async {
+Future<void> processFile(String path) async {
   final inpFile = _fs.file(path);
-  final isSynch = _opts.isSynch;
-  final isFound = (isSynch ? inpFile.existsSync() : await inpFile.exists());
+  final isSync = _opts.isSyncCall;
+  final isFound = (isSync ? inpFile.existsSync() : await inpFile.exists());
   final maxLineCount = _opts.maxLineCount;
   final toType = _opts.toType;
 
   if (!isFound) {
     _logger.error('File does not exist: "${inpFile.path}"');
-    return false;
+    return;
   }
 
   final outFile = _fs.file(toOutPath(path));
+  final outSink = outFile.openWrite();
+  final outInfo = OutInfo(outFile.path, outSink, type: toType);
 
   if (maxLineCount == null) {
-    final pileup = StringBuffer();
-
-    if (isSynch) {
-      inpFile.readUtfAsStringSync(onRead: convChunk, pileup: pileup);
-      outFile.writeUtfAsStringSync(pileup.toString(), type: toType);
+    if (isSync) {
+      inpFile.readUtfAsStringSync(onRead: convChunkSync, extra: outInfo);
+      outInfo.flushAndCloseSync();
     } else {
-      await inpFile.readUtfAsString(onRead: convChunk, pileup: pileup);
-      await outFile.writeUtfAsString(pileup.toString(), type: toType);
+      await inpFile.readUtfAsString(onRead: convChunk, extra: outInfo);
+      await outInfo.flushAndClose();
     }
-
-    pileup.clear();
   } else {
-    final pileup = <String>[];
-
-    if (isSynch) {
-      inpFile.forEachUtfLineSync(onLine: convLine, pileup: pileup);
-      outFile.writeUtfAsLines(pileup, type: toType);
+    if (isSync) {
+      inpFile.forEachUtfLineSync(onLine: convLineSync, extra: outInfo);
+      outInfo.flushAndCloseSync();
     } else {
-      await inpFile.forEachUtfLine(onLine: convLine, pileup: pileup);
-      await outFile.writeUtfAsLines(pileup, type: toType);
+      await inpFile.forEachUtfLine(onLine: convLine, extra: outInfo);
+      await outInfo.flushAndClose();
     }
-
-    pileup.clear();
   }
-
-  return true;
 }
 
 /// Process stdin
 ///
-Future<bool> processStdin() async {
-  final isSynch = _opts.isSynch;
+Future<void> processStdin() async {
+  final isSync = _opts.isSyncCall;
   final maxLineCount = _opts.maxLineCount;
   final toType = _opts.toType;
 
+  final outInfo = OutInfo(UtfStdout.name, stdout, type: toType);
+
   if (maxLineCount == null) {
-    final pileup = StringBuffer();
-
-    if (isSynch) {
-      stdin.readUtfAsStringSync(onRead: convChunk, pileup: pileup);
-      stdout.printUtfAsStringSync(pileup.toString(), type: toType);
+    if (isSync) {
+      stdin.readUtfAsStringSync(onRead: convChunkSync, extra: outInfo);
+      stdout.flushAndCloseSync();
     } else {
-      await stdin.readUtfAsString(onRead: convChunk, pileup: pileup);
-      await stdout.printUtfAsString(pileup.toString(), type: toType);
+      await stdin.readUtfAsString(onRead: convChunk, extra: outInfo);
+      await stdout.flushAndClose();
     }
-
-    pileup.clear();
   } else {
-    final pileup = <String>[];
-
-    if (isSynch) {
-      stdin.forEachLineSync(onLine: convLine, pileup: pileup);
-      stdout.printUtfAsLinesSync(pileup, type: toType);
+    if (isSync) {
+      stdin.forEachLineSync(onLine: convLineSync, extra: outInfo);
+      stdout.flushAndCloseSync();
     } else {
-      await stdin.forEachLine(onLine: convLine, pileup: pileup);
-      await stdout.printUtfAsLines(pileup, type: toType);
+      await stdin.forEachLine(onLine: convLine, extra: outInfo);
+      await stdout.flushAndClose();
     }
-
-    pileup.clear();
   }
-
-  return true;
 }
 
 /// Convert input path into output path
@@ -217,7 +262,7 @@ OPTIONS:
 -?, -h[elp]      - this help screen
 -l[ine] [MAXNUM] - convert line by line (default: convert chunks of text),
                    limit to MAXNUM (default: no limit)
--s[ync[h]]       - convert synchronously
+-s[ync]          - convert synchronously
 -t[o] TYPE       - convert the input into the output of the given type (default: utf8 without BOM)
 
 ARGUMENTS:

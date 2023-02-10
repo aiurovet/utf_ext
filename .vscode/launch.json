@@ -11,9 +11,9 @@
     { "name": "UCat  - Stdin Line", "request": "launch", "type": "dart", "program": "example/ucat.dart", "args": ["-l=0", "<", "data/utf.txt" ], "console": "terminal" },
 
     { "name": "UConv - Help",       "request": "launch", "type": "dart", "program": "example/uconv.dart", "args": ["-?"] },
-    { "name": "UConv - File Bulk",  "request": "launch", "type": "dart", "program": "example/uconv.dart", "args": ["data/utf.txt", "-l", "-t=utf16le"] },
+    { "name": "UConv - File Bulk",  "request": "launch", "type": "dart", "program": "example/uconv.dart", "args": ["data/utf.txt", "-l", "-t=utf8"] },
     { "name": "UConv - File Line",  "request": "launch", "type": "dart", "program": "example/uconv.dart", "args": ["data/utf.txt", "-l", "-t=utf16le"] },
-    { "name": "UConv - Stdin Bulk", "request": "launch", "type": "dart", "program": "example/uconv.dart", "args": ["<", "data/utf.txt" ], "console": "terminal" },
+    { "name": "UConv - Stdin Bulk", "request": "launch", "type": "dart", "program": "example/uconv.dart", "args": ["<", "data/utf.txt", "-t=utf16le" ], "console": "terminal" },
     { "name": "UConv - Stdin Line", "request": "launch", "type": "dart", "program": "example/uconv.dart", "args": ["-l=0", "<", "data/utf.txt" ], "console": "terminal" },
   ]
 }

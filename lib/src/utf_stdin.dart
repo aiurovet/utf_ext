@@ -18,45 +18,55 @@ extension UtfStdin on Stdin {
   /// Optionally, you can get the list of all lines by passing [lines]
   ///
   Future<int> forEachLine(
-          {UtfBomHandler? onBom,
+          {dynamic extra,
+          UtfBomHandler? onBom,
           UtfReadHandler? onLine,
           List<String>? pileup}) async =>
       await openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: true)
-          .forEachUtfLine(onLine: onLine, pileup: pileup);
+          .forEachUtfLine(extra: extra, onLine: onLine, pileup: pileup);
 
   /// Loop through every line and call user-defined function (blocking)
   /// Optionally, you can get the list of all lines by passing [pileup]
   ///
   int forEachLineSync(
-          {UtfBomHandler? onBom,
+          {dynamic extra,
+          UtfBomHandler? onBom,
           UtfReadHandlerSync? onLine,
           List<String>? pileup}) =>
       openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: true)
-          .forEachUtfLineSync(onLine: onLine, pileup: pileup);
+          .forEachUtfLineSync(extra: extra, onLine: onLine, pileup: pileup);
 
   /// Read stdin content as UTF (non-blocking) and and convert it to string.\
   /// If [withPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   Future<String> readUtfAsString(
-          {UtfBomHandler? onBom,
+          {dynamic extra,
+          UtfBomHandler? onBom,
           UtfReadHandler? onRead,
           StringBuffer? pileup,
           bool? withPosixLineBreaks = true}) async =>
       await openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: false)
           .readUtfAsString(
-              onRead: onRead, pileup: pileup, withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
+              extra: extra,
+              onRead: onRead,
+              pileup: pileup,
+              withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
 
   /// Read stdin content as UTF (blocking) and convert it to string.\
   /// If [withPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   String readUtfAsStringSync(
-          {UtfBomHandler? onBom,
+          {dynamic extra,
+          UtfBomHandler? onBom,
           UtfReadHandlerSync? onRead,
           StringBuffer? pileup,
           bool? withPosixLineBreaks = true}) =>
       openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: false)
           .readUtfAsStringSync(
-              onRead: onRead, pileup: pileup, withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
+              extra: extra,
+              onRead: onRead,
+              pileup: pileup,
+              withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
 }

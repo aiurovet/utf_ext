@@ -20,109 +20,122 @@ extension UtfSink on IOSink {
     }
   }
 
-  /// Close the sink (blocking)
+  /// Close the sink (non-blocking)
   ///
-  void _closeSync() {
-    var isClosed = false;
-    flush().then((_) => close().then((_) => isClosed = true));
-    while (!isClosed) { }
-  }
-
-  /// Convert a list of strings to a sequence of UTF bytes and write those to [sink] (non-blocking).\
-  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
-  /// the Windows-specific ones
-  ///
-  Future<void> writeUtfAsLines(
-    String id,
-    List<String> lines,
-    {UtfType type = UtfType.none,
-    UtfWriteHandler? onWrite,
-    dynamic extra,
-    bool? withBom,
-    bool withPosixLineBreaks = true}) async {
-
-    final encoder = UtfEncoder(id, sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
-    final isSyncCall = (onWrite is UtfWriteHandlerSync);
-    final params = UtfWriteParams(extra: encoder, isSyncCall: isSyncCall);
-
-    for (final line in lines) {
-      params.current = line;
-      await writeUtfChunk(encoder, line, onWrite: onWrite, params: params, withPosixLineBreaks: withPosixLineBreaks);
-    }
-
+  Future<void> flushAndClose() async {
     await flush();
     await close();
   }
 
+  /// Close the sink (blocking)
+  ///
+  void flushAndCloseSync() {
+    var isClosed = false;
+    flush().then((_) => close().then((_) => isClosed = true));
+    while (!isClosed) {}
+  }
+
   /// Convert a list of strings to a sequence of UTF bytes and write those to [sink] (non-blocking).\
   /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
   /// the Windows-specific ones
   ///
-  void writeUtfAsLinesSync(
-    String id,
-    List<String> lines,
-    {UtfType type = UtfType.none,
-    UtfWriteHandlerSync? onWrite,
-    dynamic extra,
-    bool? withBom,
-    bool withPosixLineBreaks = true}) async {
-
-    final encoder = UtfEncoder(id, sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
-    final params = UtfWriteParams(extra: encoder);
+  Future<void> writeUtfAsLines(String id, List<String> lines,
+      {UtfType type = UtfType.none,
+      UtfWriteHandler? onWrite,
+      dynamic extra,
+      bool? withBom,
+      bool withPosixLineBreaks = true}) async {
+    final encoder = UtfEncoder(id,
+        sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
+    final isSyncCall = (onWrite is UtfWriteHandlerSync);
+    final params = UtfWriteParams(extra: extra, isSyncCall: isSyncCall);
 
     for (final line in lines) {
       params.current = line;
-      writeUtfChunkSync(encoder, line, onWrite: onWrite, params: params, withPosixLineBreaks: withPosixLineBreaks);
+      await writeUtfChunk(encoder, line,
+          onWrite: onWrite,
+          params: params,
+          withPosixLineBreaks: withPosixLineBreaks);
     }
 
-    _closeSync();
+    await flushAndClose();
+  }
+
+  /// Convert a list of strings to a sequence of UTF bytes and write those to [sink] (non-blocking).\
+  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
+  /// the Windows-specific ones
+  ///
+  void writeUtfAsLinesSync(String id, List<String> lines,
+      {UtfType type = UtfType.none,
+      UtfWriteHandlerSync? onWrite,
+      dynamic extra,
+      bool? withBom,
+      bool withPosixLineBreaks = true}) async {
+    final encoder = UtfEncoder(id,
+        sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
+    final params = UtfWriteParams(extra: extra);
+
+    for (final line in lines) {
+      params.current = line;
+      writeUtfChunkSync(encoder, line,
+          onWrite: onWrite,
+          params: params,
+          withPosixLineBreaks: withPosixLineBreaks);
+    }
+
+    flushAndCloseSync();
   }
 
   /// Convert string to a sequence of UTF bytes and write that to [sink] (non-blocking).\
   /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
   /// the Windows-specific ones
   ///
-  Future<void> writeUtfAsString(
-    String id,
-    String content,
-    {UtfType type = UtfType.none,
-    dynamic extra,
-    bool? withBom,
-    bool withPosixLineBreaks = true}) async {
+  Future<void> writeUtfAsString(String id, String content,
+      {dynamic extra,
+      UtfWriteHandler? onWrite,
+      UtfType type = UtfType.none,
+      bool? withBom,
+      bool withPosixLineBreaks = true}) async {
+    final encoder = UtfEncoder(id,
+        sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
+    final params = UtfWriteParams(current: content, extra: extra);
 
-    final encoder = UtfEncoder(id, sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
-    final params = UtfWriteParams(current: content, extra: encoder);
-    await writeUtfChunk(encoder, content, params: params, withPosixLineBreaks: withPosixLineBreaks);
-    await flush();
-    await close();
+    await writeUtfChunk(encoder, content,
+        onWrite: onWrite,
+        params: params,
+        withPosixLineBreaks: withPosixLineBreaks);
+
+    await flushAndClose();
   }
 
   /// Convert string to a sequence of UTF bytes and write that to [sink] (blocking).\
   /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
   /// the Windows-specific ones
   ///
-  Future<void> writeUtfAsStringSync(
-    String id,
-    String content,
-    {dynamic extra,
-    UtfWriteHandlerSync? onWrite,
-    UtfType type = UtfType.none,
-    bool? withBom,
-    bool withPosixLineBreaks = true}) async {
+  Future<void> writeUtfAsStringSync(String id, String content,
+      {dynamic extra,
+      UtfWriteHandlerSync? onWrite,
+      UtfType type = UtfType.none,
+      bool? withBom,
+      bool withPosixLineBreaks = true}) async {
+    final encoder = UtfEncoder(id,
+        sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
 
-    final encoder = UtfEncoder(id, sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
-    final params = UtfWriteParams(current: content, extra: encoder);
-    writeUtfChunkSync(encoder, content, params: params, withPosixLineBreaks: withPosixLineBreaks);
-    _closeSync();
+    final params = UtfWriteParams(current: content, extra: extra);
+
+    writeUtfChunkSync(encoder, content,
+        onWrite: onWrite,
+        params: params,
+        withPosixLineBreaks: withPosixLineBreaks);
+
+    flushAndCloseSync();
   }
 
   /// Convert string to a sequence of UTF bytes and write that to [sink] (non-blocking).\
   /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
   /// the Windows-specific ones
   ///
-  Future<VisitResult> writeUtfChunk(
-      UtfEncoder encoder,
-      String chunk,
+  Future<VisitResult> writeUtfChunk(UtfEncoder encoder, String chunk,
       {UtfWriteHandler? onWrite,
       UtfWriteParams? params,
       bool withPosixLineBreaks = true}) async {
@@ -153,9 +166,7 @@ extension UtfSink on IOSink {
   /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
   /// the Windows-specific ones
   ///
-  VisitResult writeUtfChunkSync(
-      UtfEncoder encoder,
-      String chunk,
+  VisitResult writeUtfChunkSync(UtfEncoder encoder, String chunk,
       {UtfWriteHandlerSync? onWrite,
       UtfWriteParams? params,
       bool withPosixLineBreaks = true}) {

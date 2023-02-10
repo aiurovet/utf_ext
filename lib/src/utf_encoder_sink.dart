@@ -57,10 +57,7 @@ class UtfEncoderSink extends StringConversionSinkBase {
   /// Default constructor
   ///
   UtfEncoderSink(
-      {this.id,
-      Sink? sink,
-      UtfType type = UtfType.none,
-      bool withBom = true}) {
+      {this.id, Sink? sink, UtfType type = UtfType.none, bool withBom = true}) {
     _init(sink, type, withBom);
   }
 
@@ -102,16 +99,17 @@ class UtfEncoderSink extends StringConversionSinkBase {
       source = source.substring(start, end);
     }
 
-    final output = (_withBom && (start == 0) ? _type.toBom(true) : UtfType.emptyBom).toList();
+    final output =
+        (_withBom && (start == 0) ? _type.toBom(true) : UtfType.emptyBom)
+            .toList();
 
     _withBom = false;
 
     final isFixLen = _type.isFixedLength(true);
     final isShort = _type.isFixedLengthShort(true);
 
-    final charCodes = (isShort
-      ? source.codeUnits
-      : source.runes.toList(growable: false));
+    final charCodes =
+        (isShort ? source.codeUnits : source.runes.toList(growable: false));
 
     if (_isFixedLengthShort && (_isBigEndianData == isBigEndianHost)) {
       output.addAll(charCodes);
@@ -131,30 +129,33 @@ class UtfEncoderSink extends StringConversionSinkBase {
       } else if (isFixLen) {
         // Swap bytes in UTF-32
         //
-        charCode = (charCode >> 24) | (((charCode >> 16) & 0xFF) << 8) | (((charCode >> 8) & 0xFF) << 16) | ((charCode & 0xFF) << 24);
+        charCode = (charCode >> 24) |
+            (((charCode >> 16) & 0xFF) << 8) |
+            (((charCode >> 8) & 0xFF) << 16) |
+            ((charCode & 0xFF) << 24);
         output.add(charCode);
-      } else if ((charCode & 0x800000000) == 0) {
+      } else if (charCode <= 0x7F) {
         // 1-byte character in UTF-8
         //
-        output.add(charCode >> 24);
-      } else if ((charCode & 0xC080) == 0xC080) {
+        output.add(charCode);
+      } else if (charCode <= 0x7FF) {
         // 2-byte character in UTF-8
         //
-        output.add((charCode >> 24) & 0x1F);
-        output.add((charCode >> 16) & 0x3F);
-      } else if ((charCode & 0xE08080) == 0xE08080) {
+        output.add(0xC0 | (charCode >> 6));
+        output.add(0x80 | (charCode & 0x3F));
+      } else if (charCode <= 0xFFFF) {
         // 3-byte character in UTF-8
         //
-        output.add((charCode >> 24) & 0x0F);
-        output.add((charCode >> 16) & 0x3F);
-        output.add((charCode >>  8) & 0x3F);
-      } else if ((charCode & 0xF0808080) == 0xF0808080) {
+        output.add(0xE0 | (charCode >> 12));
+        output.add(0x80 | ((charCode >> 6) & 0x3F));
+        output.add(0x80 | (charCode & 0x3F));
+      } else if (charCode <= 0x10FFFF) {
         // 4-byte character in UTF-8
         //
-        output.add((charCode >> 24) & 0x07);
-        output.add((charCode >> 16) & 0x3F);
-        output.add((charCode >>  8) & 0x3F);
-        output.add(charCode & 0x3F);
+        output.add(0xF0 | (charCode >> 18));
+        output.add(0x80 | ((charCode >> 12) & 0x3F));
+        output.add(0x80 | ((charCode >> 6) & 0x3F));
+        output.add(0x80 | (charCode & 0x3F));
       } else {
         _fail(source);
       }

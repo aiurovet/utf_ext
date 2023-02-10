@@ -26,16 +26,21 @@ extension UtfStringStream on Stream<String> {
   /// Return the number of lines read.
   ///
   Future<int> forEachUtfLine(
-      {UtfReadHandler? onLine, List<String>? pileup}) async {
+      {dynamic extra, UtfReadHandler? onLine, List<String>? pileup}) async {
     pileup?.clear();
 
     final isSyncCall = (onLine is UtfReadHandlerSync);
-    final params = UtfReadParams(isSyncCall: isSyncCall, extra: pileup);
+    final params = UtfReadParams(
+        isSyncCall: isSyncCall,
+        extra: UtfReadExtraParams(extra: extra, pileup: pileup));
+
+    params.current = UtfReadExtraParams(pileup: pileup);
+
     var result = VisitResult.take;
 
     await for (final line in this) {
       ++params.currentNo;
-      params.current = line;
+      params.current!.buffer = line;
 
       if (onLine != null) {
         result = (isSyncCall ? onLine(params) : await onLine(params));
@@ -60,16 +65,22 @@ extension UtfStringStream on Stream<String> {
   /// \
   /// Return the number of lines read.
   ///
-  int forEachUtfLineSync({UtfReadHandlerSync? onLine, List<String>? pileup}) {
+  int forEachUtfLineSync(
+      {dynamic extra, UtfReadHandlerSync? onLine, List<String>? pileup}) {
     pileup?.clear();
 
     final isSyncCall = (onLine is UtfReadHandlerSync);
-    final params = UtfReadParams(isSyncCall: isSyncCall, extra: pileup);
+    final params = UtfReadParams(
+        isSyncCall: isSyncCall,
+        extra: UtfReadExtraParams(extra: extra, pileup: pileup));
+
+    params.current = UtfReadExtraParams(pileup: pileup);
+
     var result = VisitResult.take;
 
     any((line) {
       ++params.currentNo;
-      params.current = line;
+      params.current!.buffer = line;
 
       if (onLine != null) {
         result = onLine(params);
@@ -94,8 +105,7 @@ extension UtfStringStream on Stream<String> {
   /// Replace all occurrences of POSIX line breaks with the Windows ones
   /// without affecting the existing Windows line breaks
   ///
-  static String fromPosixLineBreaks(String input) =>
-    input
+  static String fromPosixLineBreaks(String input) => input
       .replaceAll(UtfStringStream.lineBreakWin, '\x01')
       .replaceAll(UtfStringStream.lineBreak, UtfStringStream.lineBreakWin)
       .replaceAll('\x01', UtfStringStream.lineBreakWin);
@@ -107,18 +117,22 @@ extension UtfStringStream on Stream<String> {
   /// Return the wole content if [pileup] is null or empty string otherwise.
   ///
   Future<String> readUtfAsString(
-      {UtfReadHandler? onRead,
+      {dynamic extra,
+      UtfReadHandler? onRead,
       StringBuffer? pileup,
       bool withPosixLineBreaks = true}) async {
     var output = (pileup ?? StringBuffer())..clear();
 
     final isSyncCall = (onRead is UtfReadHandlerSync);
-    final params = UtfReadParams(isSyncCall: isSyncCall, extra: output);
+    final params = UtfReadParams(isSyncCall: isSyncCall, extra: extra);
+    params.current = UtfReadExtraParams(pileup: output);
+
     var result = VisitResult.take;
 
     await for (var buffer in this) {
       ++params.currentNo;
-      params.current = (withPosixLineBreaks ? toPosixLineBreaks(buffer) : buffer);
+      params.current!.buffer =
+          (withPosixLineBreaks ? toPosixLineBreaks(buffer) : buffer);
 
       if (onRead != null) {
         result = (isSyncCall ? onRead(params) : await onRead(params));
@@ -145,19 +159,25 @@ extension UtfStringStream on Stream<String> {
   /// Return the wole content if [pileup] is null or empty string otherwise.
   ///
   String readUtfAsStringSync(
-      {UtfReadHandlerSync? onRead,
+      {dynamic extra,
+      UtfReadHandlerSync? onRead,
       StringBuffer? pileup,
       bool withPosixLineBreaks = true}) {
     var output = (pileup ?? StringBuffer())..clear();
 
-    final params = UtfReadParams(isSyncCall: true, extra: output);
+    final params = UtfReadParams(
+        isSyncCall: true,
+        extra: UtfReadExtraParams(extra: extra, pileup: output));
+    params.current = UtfReadExtraParams(pileup: output);
+
     var result = VisitResult.take;
 
     output.clear();
 
     any((chunk) {
       ++params.currentNo;
-      params.current = (withPosixLineBreaks ? toPosixLineBreaks(chunk) : chunk);
+      params.current!.buffer =
+          (withPosixLineBreaks ? toPosixLineBreaks(chunk) : chunk);
 
       if (onRead != null) {
         result = onRead(params);
@@ -182,8 +202,7 @@ extension UtfStringStream on Stream<String> {
   /// Replace all occurrences of Windows and old Mac specific
   /// line breaks with the POSIX ones
   ///
-  static String toPosixLineBreaks(String input) =>
-    input
+  static String toPosixLineBreaks(String input) => input
       .replaceAll(lineBreakWin, lineBreak)
       .replaceAll(lineBreakMac, lineBreak);
 }

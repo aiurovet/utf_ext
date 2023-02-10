@@ -24,7 +24,10 @@ class UtfEncoder extends Converter<String, List<int>> {
 
   /// Default constructor
   ///
-  UtfEncoder(this.id, {Sink<List<int>>? sink, UtfType type = UtfType.none, bool withBom = true}) {
+  UtfEncoder(this.id,
+      {Sink<List<int>>? sink,
+      UtfType type = UtfType.none,
+      bool withBom = true}) {
     _init(sink, type, withBom);
   }
 
@@ -40,7 +43,8 @@ class UtfEncoder extends Converter<String, List<int>> {
     _withBom = withBom;
 
     if (sink != null) {
-      _sink = UtfEncoderSink(id: id, sink: sink, type: _type, withBom: _withBom);
+      _sink =
+          UtfEncoderSink(id: id, sink: sink, type: _type, withBom: _withBom);
     }
   }
 
@@ -60,7 +64,8 @@ class UtfEncoder extends Converter<String, List<int>> {
       byteSink = ByteConversionSink.from(sink);
     }
 
-    _sink = UtfEncoderSink(id: id, sink: byteSink, type: _type, withBom: _withBom);
+    _sink =
+        UtfEncoderSink(id: id, sink: byteSink, type: _type, withBom: _withBom);
 
     return _sink!;
   }

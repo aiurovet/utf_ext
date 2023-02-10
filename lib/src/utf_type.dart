@@ -30,8 +30,8 @@ enum UtfType {
   /// Const: type to BOM mapping
   ///
   static final _bomMap = {
-    none:    <int>[],
-    utf8:    <int>[0xEF, 0xBB, 0xBF],
+    none: <int>[],
+    utf8: <int>[0xEF, 0xBB, 0xBF],
     utf16be: <int>[0xFE, 0xFF],
     utf16le: <int>[0xFF, 0xFE],
     utf32be: <int>[0x00, 0x00, 0xFE, 0xFF],
@@ -57,13 +57,15 @@ enum UtfType {
   /// Determine UTF type based on a sequence of bytes
   ///
   static UtfType fromBom(List<int> buffer) {
-    return _bomMap.keys.firstWhere((x) => buffer.startsWith(_bomMap[x]!), orElse: () => none);
+    return _bomMap.keys
+        .firstWhere((x) => buffer.startsWith(_bomMap[x]!), orElse: () => none);
   }
 
   /// Get BOM length
   ///
   int getBomLength(bool forWrite) {
-    switch (this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this) {
+    switch (
+        this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this) {
       case UtfType.utf8:
         return 3;
       case UtfType.utf16be:
@@ -80,7 +82,8 @@ enum UtfType {
   /// Get maximum number of bytes representing a character
   ///
   int getMaxCharLength(bool forWrite) {
-    switch (this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this) {
+    switch (
+        this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this) {
       case UtfType.utf16be:
       case UtfType.utf16le:
         return 2;
@@ -92,7 +95,8 @@ enum UtfType {
   /// Get minimum number of bytes representing a character
   ///
   int getMinCharLength(bool forWrite) {
-    switch (this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this) {
+    switch (
+        this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this) {
       case utf16be:
       case utf16le:
         return 2;
@@ -107,7 +111,8 @@ enum UtfType {
   /// Check the endianness
   ///
   bool isBigEndian(bool forWrite) {
-    switch (this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this) {
+    switch (
+        this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this) {
       case utf16be:
       case utf32be:
         return true;
@@ -119,7 +124,8 @@ enum UtfType {
   /// Flag separating none/UTF-8 and UTF-16/32
   ///
   bool isFixedLength(bool forWrite) {
-    switch (this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this) {
+    switch (
+        this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this) {
       case none:
       case utf8:
         return false;
@@ -131,7 +137,8 @@ enum UtfType {
   /// Check whether this is a 2-byte Unicode
   ///
   bool isFixedLengthShort(bool forWrite) {
-    switch (this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this) {
+    switch (
+        this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this) {
       case utf16be:
       case utf16le:
         return true;
@@ -157,11 +164,14 @@ enum UtfType {
   /// Convert type to BOM
   ///
   List<int> toBom(bool forWrite, {bool useFallback = false}) =>
-      _bomMap[useFallback && (this == none) ? (forWrite ? fallbackForWrite : fallbackForRead) : this]!;
+      _bomMap[useFallback && (this == none)
+          ? (forWrite ? fallbackForWrite : fallbackForRead)
+          : this]!;
 
   /// Convert type to BOM
   ///
-  UtfType toFinal(bool forWrite) => (this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this);
+  UtfType toFinal(bool forWrite) =>
+      (this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this);
 
   /// Serialize
   ///

@@ -17,21 +17,23 @@ extension UtfFile on File {
   /// Optionally, you can get the list of all lines by passing [pileup]
   ///
   Future<int> forEachUtfLine(
-          {UtfBomHandler? onBom,
+          {dynamic extra,
+          UtfBomHandler? onBom,
           UtfReadHandler? onLine,
           List<String>? pileup}) async =>
       await openUtfRead(onBom: onBom, asLines: true)
-          .forEachUtfLine(onLine: onLine, pileup: pileup);
+          .forEachUtfLine(extra: extra, onLine: onLine, pileup: pileup);
 
   /// Loop through every line and call user-defined function (blocking)
   /// Optionally, you can get the list of all lines by passing [pileup]
   ///
   int forEachUtfLineSync(
-          {UtfBomHandlerSync? onBom,
+          {dynamic extra,
+          UtfBomHandlerSync? onBom,
           UtfReadHandlerSync? onLine,
           List<String>? pileup}) =>
       openUtfRead(onBom: onBom, asLines: true)
-          .forEachUtfLineSync(onLine: onLine, pileup: pileup);
+          .forEachUtfLineSync(extra: extra, onLine: onLine, pileup: pileup);
 
   /// Open stream (from file or stdin) for reading
   ///
@@ -47,76 +49,98 @@ extension UtfFile on File {
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   Future<String> readUtfAsString(
-          {UtfBomHandler? onBom,
+          {dynamic extra,
+          UtfBomHandler? onBom,
           UtfReadHandler? onRead,
           StringBuffer? pileup,
           bool? withPosixLineBreaks = true}) async =>
       await openUtfRead(onBom: onBom).readUtfAsString(
-          onRead: onRead, pileup: pileup, withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
+          extra: extra,
+          onRead: onRead,
+          pileup: pileup,
+          withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
 
   /// Read the UTF file content (blocking) and convert it to string.\
   /// If [withPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   String readUtfAsStringSync(
-          {UtfBomHandler? onBom,
+          {dynamic extra,
+          UtfBomHandler? onBom,
           UtfReadHandlerSync? onRead,
           StringBuffer? pileup,
           bool? withPosixLineBreaks = true}) =>
       openUtfRead(onBom: onBom).readUtfAsStringSync(
-          onRead: onRead, pileup: pileup, withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
+          extra: extra,
+          onRead: onRead,
+          pileup: pileup,
+          withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
 
   /// Convert a list of strings to a sequence of UTF bytes and write those to [sink] (non-blocking).\
   /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
   /// the Windows-specific ones
   ///
-  Future<void> writeUtfAsLines(
-    List<String> lines,
-    {FileMode mode = FileMode.write,
-    UtfWriteHandler? onWrite,
-    UtfType type = UtfType.none,
-    bool? withBom,
-    bool withPosixLineBreaks = true}) async =>
-    await openWrite(mode: mode)
-      .writeUtfAsLines(path, lines, type: type, onWrite: onWrite, withBom: withBom, withPosixLineBreaks: withPosixLineBreaks);
+  Future<void> writeUtfAsLines(List<String> lines,
+          {dynamic extra,
+          FileMode mode = FileMode.write,
+          UtfWriteHandler? onWrite,
+          UtfType type = UtfType.none,
+          bool? withBom,
+          bool withPosixLineBreaks = true}) async =>
+      await openWrite(mode: mode).writeUtfAsLines(path, lines,
+          extra: extra,
+          type: type,
+          onWrite: onWrite,
+          withBom: withBom,
+          withPosixLineBreaks: withPosixLineBreaks);
 
   /// Convert a list of strings to a sequence of UTF bytes and write those to [sink] (non-blocking).\
   /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
   /// the Windows-specific ones
   ///
-  void writeUtfAsLinesSync(
-    List<String> lines,
-    {FileMode mode = FileMode.write,
-    UtfWriteHandlerSync? onWrite,
-    UtfType type = UtfType.none,
-    bool? withBom,
-    bool withPosixLineBreaks = true}) =>
-    openWrite(mode: mode)
-      .writeUtfAsLinesSync(path, lines, type: type, onWrite: onWrite, withBom: withBom, withPosixLineBreaks: withPosixLineBreaks);
+  void writeUtfAsLinesSync(List<String> lines,
+          {dynamic extra,
+          FileMode mode = FileMode.write,
+          UtfWriteHandlerSync? onWrite,
+          UtfType type = UtfType.none,
+          bool? withBom,
+          bool withPosixLineBreaks = true}) =>
+      openWrite(mode: mode).writeUtfAsLinesSync(path, lines,
+          extra: extra,
+          type: type,
+          onWrite: onWrite,
+          withBom: withBom,
+          withPosixLineBreaks: withPosixLineBreaks);
 
   /// Read the UTF file content (non-blocking) and and convert it to string.\
   /// If [withPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
-  Future<void> writeUtfAsString(
-          String content,
-          {FileMode mode = FileMode.write,
+  Future<void> writeUtfAsString(String content,
+          {dynamic extra,
+          FileMode mode = FileMode.write,
           UtfType type = UtfType.utf8,
           bool? withBom,
           bool? withPosixLineBreaks = true}) async =>
-    await openWrite(mode: mode)
-      .writeUtfAsString(path, content, type: type, withBom: withBom, withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
+      await openWrite(mode: mode).writeUtfAsString(path, content,
+          extra: extra,
+          type: type,
+          withBom: withBom,
+          withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
 
   /// Read the UTF file content (blocking) and and convert it to string.\
   /// If [withPosixLineBreaks] is set, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
-  void writeUtfAsStringSync(
-          String content,
-          {FileMode mode = FileMode.write,
+  void writeUtfAsStringSync(String content,
+          {dynamic extra,
+          FileMode mode = FileMode.write,
           UtfType type = UtfType.utf8,
           bool? withBom,
           bool? withPosixLineBreaks = true}) =>
-    openWrite(mode: mode)
-      .writeUtfAsStringSync(path, content, type: type, withBom: withBom, withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
+      openWrite(mode: mode).writeUtfAsStringSync(path, content,
+          extra: extra,
+          type: type,
+          withBom: withBom,
+          withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
 }
