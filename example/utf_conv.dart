@@ -97,13 +97,13 @@ class OutInfo {
 
   /// Write piece of data (non-blocking)
   ///
-  Future<void> writeUtfChunk(UtfReadExtraParams? params) async =>
-      await sink.writeUtfChunk(encoder, params!.buffer!);
+  Future<void> writeUtfChunk(String chunk) async =>
+      await sink.writeUtfChunk(encoder, chunk);
 
   /// Write piece of data (blocking)
   ///
-  void writeUtfChunkSync(UtfReadExtraParams? params) =>
-      sink.writeUtfChunkSync(encoder, params!.buffer!);
+  void writeUtfChunkSync(String chunk) =>
+      sink.writeUtfChunkSync(encoder, chunk);
 }
 
 /// Entry point
@@ -129,7 +129,7 @@ Future<void> main(List<String> args) async {
 /// Write any chunk of text to the output sink (non-blocing)
 ///
 Future<VisitResult> convChunk(UtfReadParams params) async {
-  await (params.extra as OutInfo).writeUtfChunk(params.current);
+  await (params.extra as OutInfo).writeUtfChunk(params.current!.buffer!);
 
   return VisitResult.take;
 }
@@ -137,7 +137,7 @@ Future<VisitResult> convChunk(UtfReadParams params) async {
 /// Write any chunk of text to the output sink (non-blocing)
 ///
 VisitResult convChunkSync(UtfReadParams params) {
-  (params.extra as OutInfo).writeUtfChunkSync(params.current);
+  (params.extra as OutInfo).writeUtfChunkSync(params.current!.buffer!);
 
   return VisitResult.take;
 }
@@ -149,8 +149,8 @@ FutureOr<VisitResult> convLine(UtfReadParams params) async {
   final takenNo = params.takenNo + 1;
   final canStop = ((maxLineCount > 0) && (takenNo >= maxLineCount));
 
-  params.current!.buffer = '${params.current!.buffer!}${UtfStringStream.lineBreak}';
-  (params.extra as OutInfo).writeUtfChunkSync(params.current);
+  final buffer = '${params.current!.buffer!}${UtfStringStream.lineBreak}';
+  (params.extra as OutInfo).writeUtfChunkSync(buffer);
 
   return (canStop ? VisitResult.takeAndStop : VisitResult.take);
 }
@@ -162,8 +162,8 @@ VisitResult convLineSync(UtfReadParams params) {
   final takenNo = params.takenNo + 1;
   final canStop = ((maxLineCount > 0) && (takenNo >= maxLineCount));
 
-  params.current!.buffer = '${params.current!.buffer!}${UtfStringStream.lineBreak}';
-  (params.extra as OutInfo).writeUtfChunkSync(params.current);
+  final buffer = '${params.current!.buffer!}${UtfStringStream.lineBreak}';
+  (params.extra as OutInfo).writeUtfChunkSync(buffer);
 
   return (canStop ? VisitResult.takeAndStop : VisitResult.take);
 }
@@ -190,8 +190,7 @@ Future<void> processFile(String path) async {
   }
 
   final outFile = _fs.file(toOutPath(path));
-  final outSink = outFile.openWrite();
-  final outInfo = OutInfo(outFile.path, outSink, type: toType);
+  final outInfo = OutInfo(outFile.path, outFile.openWrite(), type: toType);
 
   if (maxLineCount == null) {
     if (isSync) {

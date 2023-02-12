@@ -4,12 +4,12 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-    { "name": "UCat  - Help",  "request": "launch", "type": "dart", "program": "example/ucat.dart", "args": ["-?"] },
-    { "name": "UCat  - File",  "request": "launch", "type": "dart", "program": "example/ucat.dart", "args": ["data/utf_utf16le.txt", "-s"] },
-    { "name": "UCat  - Stdin", "request": "launch", "type": "dart", "program": "example/ucat.dart", "args": ["<", "data/utf.txt" ], "console": "terminal" },
+    { "name": "Cat  - Help",  "request": "launch", "type": "dart", "program": "example/utf_cat.dart", "args": ["-?"] },
+    { "name": "Cat  - File",  "request": "launch", "type": "dart", "program": "example/utf_cat.dart", "args": ["data/utf_utf16le.txt", "-s"] },
+    { "name": "Cat  - Stdin", "request": "launch", "type": "dart", "program": "example/utf_cat.dart", "args": ["<", "data/utf.txt" ], "console": "terminal" },
 
-    { "name": "UConv - Help",  "request": "launch", "type": "dart", "program": "example/uconv.dart", "args": ["-?"] },
-    { "name": "UConv - File",  "request": "launch", "type": "dart", "program": "example/uconv.dart", "args": ["data/utf.txt", "-l=10", "-t=utf32be"] },
-    { "name": "UConv - Stdin", "request": "launch", "type": "dart", "program": "example/uconv.dart", "args": ["<", "data/utf.txt", "-t=utf16le" ], "console": "terminal" },
+    { "name": "Conv - Help",  "request": "launch", "type": "dart", "program": "example/utf_conv.dart", "args": ["-?"] },
+    { "name": "Conv - File",  "request": "launch", "type": "dart", "program": "example/utf_conv.dart", "args": ["data/utf.txt", "-l=3", "-t=utf32le"] },
+    { "name": "Conv - Stdin", "request": "launch", "type": "dart", "program": "example/utf_conv.dart", "args": ["<", "data/utf.txt", "-t=utf16le" ], "console": "terminal" },
   ]
 }

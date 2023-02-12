@@ -32,10 +32,10 @@ enum UtfType {
   static final _bomMap = {
     none: <int>[],
     utf8: <int>[0xEF, 0xBB, 0xBF],
+    utf32be: <int>[0x00, 0x00, 0xFE, 0xFF],
+    utf32le: <int>[0xFF, 0xFE, 0x00, 0x00], // UTF-32LE should come before UTF-16LE because of fromBom()
     utf16be: <int>[0xFE, 0xFF],
     utf16le: <int>[0xFF, 0xFE],
-    utf32be: <int>[0x00, 0x00, 0xFE, 0xFF],
-    utf32le: <int>[0xFF, 0xFE, 0x00, 0x00],
   };
 
   /// Const: type to BOM mapping
