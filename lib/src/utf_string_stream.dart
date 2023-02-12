@@ -32,7 +32,7 @@ extension UtfStringStream on Stream<String> {
     final isSyncCall = (onLine is UtfReadHandlerSync);
     final params = UtfReadParams(
         isSyncCall: isSyncCall,
-        extra: UtfReadExtraParams(extra: extra, pileup: pileup));
+        extra: extra);
 
     params.current = UtfReadExtraParams(pileup: pileup);
 
@@ -72,7 +72,7 @@ extension UtfStringStream on Stream<String> {
     final isSyncCall = (onLine is UtfReadHandlerSync);
     final params = UtfReadParams(
         isSyncCall: isSyncCall,
-        extra: UtfReadExtraParams(extra: extra, pileup: pileup));
+        extra: extra);
 
     params.current = UtfReadExtraParams(pileup: pileup);
 

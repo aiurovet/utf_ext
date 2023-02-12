@@ -64,8 +64,7 @@ enum UtfType {
   /// Get BOM length
   ///
   int getBomLength(bool forWrite) {
-    switch (
-        this == none ? (forWrite ? fallbackForWrite : fallbackForRead) : this) {
+    switch (this) { // no fallback
       case UtfType.utf8:
         return 3;
       case UtfType.utf16be:

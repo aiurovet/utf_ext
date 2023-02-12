@@ -111,29 +111,37 @@ class UtfEncoderSink extends StringConversionSinkBase {
     final charCodes =
         (isShort ? source.codeUnits : source.runes.toList(growable: false));
 
-    if (_isFixedLengthShort && (_isBigEndianData == isBigEndianHost)) {
-      output.addAll(charCodes);
-      return Uint8List.fromList(output);
-    }
-
     len = charCodes.length;
 
     for (var cur = 0; cur < len; cur++) {
       var charCode = charCodes[cur];
 
       if (isShort) {
-        // Swap bytes in UTF-16
+        // Swap bytes in UTF-16 if needed and write to the output
         //
-        charCode = (charCode >> 8) | ((charCode & 0xFF) << 8);
-        output.add(charCode);
+        if (_isBigEndianData)
+        {
+          output.add((charCode >> 8) & 0xFF);
+          output.add((charCode) & 0xFF);
+        } else {
+          output.add((charCode) & 0xFF);
+          output.add((charCode >> 8) & 0xFF);
+        }
       } else if (isFixLen) {
-        // Swap bytes in UTF-32
+        // Swap bytes in UTF-32 if needed and write to the output
         //
-        charCode = (charCode >> 24) |
-            (((charCode >> 16) & 0xFF) << 8) |
-            (((charCode >> 8) & 0xFF) << 16) |
-            ((charCode & 0xFF) << 24);
-        output.add(charCode);
+        if (_isBigEndianData)
+        {
+          output.add((charCode >> 24) & 0xFF);
+          output.add((charCode >> 16) & 0xFF);
+          output.add((charCode >> 8) & 0xFF);
+          output.add((charCode) & 0xFF);
+        } else {
+          output.add((charCode) & 0xFF);
+          output.add((charCode >> 8) & 0xFF);
+          output.add((charCode >> 16) & 0xFF);
+          output.add((charCode >> 24) & 0xFF);
+        }
       } else if (charCode <= 0x7F) {
         // 1-byte character in UTF-8
         //

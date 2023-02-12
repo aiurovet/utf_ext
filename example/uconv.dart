@@ -149,6 +149,7 @@ FutureOr<VisitResult> convLine(UtfReadParams params) async {
   final takenNo = params.takenNo + 1;
   final canStop = ((maxLineCount > 0) && (takenNo >= maxLineCount));
 
+  params.current!.buffer = '${params.current!.buffer!}${UtfStringStream.lineBreak}';
   (params.extra as OutInfo).writeUtfChunkSync(params.current);
 
   return (canStop ? VisitResult.takeAndStop : VisitResult.take);
@@ -161,6 +162,7 @@ VisitResult convLineSync(UtfReadParams params) {
   final takenNo = params.takenNo + 1;
   final canStop = ((maxLineCount > 0) && (takenNo >= maxLineCount));
 
+  params.current!.buffer = '${params.current!.buffer!}${UtfStringStream.lineBreak}';
   (params.extra as OutInfo).writeUtfChunkSync(params.current);
 
   return (canStop ? VisitResult.takeAndStop : VisitResult.take);
@@ -243,10 +245,8 @@ Future<void> processStdin() async {
 String toOutPath(String inpPath) {
   final fsPath = _fs.path;
   final inpDir = fsPath.dirname(inpPath);
-  final inpName = fsPath.basenameWithoutExtension(inpPath);
-  final inpExt = fsPath.extension(inpPath);
 
-  return fsPath.join(inpDir, '${inpName}_${_opts.toType.name}$inpExt');
+  return fsPath.join(inpDir, 'write_${_opts.toType.name}.txt');
 }
 
 /// Print help
