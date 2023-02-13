@@ -31,16 +31,15 @@ extension UtfStringStream on Stream<String> {
 
     final isSyncCall = (onLine is UtfReadHandlerSync);
     final params = UtfReadParams(
+        extra: extra,
         isSyncCall: isSyncCall,
-        extra: extra);
-
-    params.current = UtfReadExtraParams(pileup: pileup);
+        pileup: pileup);
 
     var result = VisitResult.take;
 
     await for (final line in this) {
       ++params.currentNo;
-      params.current!.buffer = line;
+      params.current = line;
 
       if (onLine != null) {
         result = (isSyncCall ? onLine(params) : await onLine(params));
@@ -71,16 +70,15 @@ extension UtfStringStream on Stream<String> {
 
     final isSyncCall = (onLine is UtfReadHandlerSync);
     final params = UtfReadParams(
+        extra: extra,
         isSyncCall: isSyncCall,
-        extra: extra);
-
-    params.current = UtfReadExtraParams(pileup: pileup);
+        pileup: pileup);
 
     var result = VisitResult.take;
 
     any((line) {
       ++params.currentNo;
-      params.current!.buffer = line;
+      params.current = line;
 
       if (onLine != null) {
         result = onLine(params);
@@ -124,15 +122,13 @@ extension UtfStringStream on Stream<String> {
     var output = (pileup ?? StringBuffer())..clear();
 
     final isSyncCall = (onRead is UtfReadHandlerSync);
-    final params = UtfReadParams(isSyncCall: isSyncCall, extra: extra);
-    params.current = UtfReadExtraParams(pileup: output);
+    final params = UtfReadParams(extra: extra, isSyncCall: isSyncCall, pileup: pileup);
 
     var result = VisitResult.take;
 
     await for (var buffer in this) {
       ++params.currentNo;
-      params.current!.buffer =
-          (withPosixLineBreaks ? toPosixLineBreaks(buffer) : buffer);
+      params.current = (withPosixLineBreaks ? toPosixLineBreaks(buffer) : buffer);
 
       if (onRead != null) {
         result = (isSyncCall ? onRead(params) : await onRead(params));
@@ -166,9 +162,9 @@ extension UtfStringStream on Stream<String> {
     var output = (pileup ?? StringBuffer())..clear();
 
     final params = UtfReadParams(
+        extra: extra,
         isSyncCall: true,
-        extra: UtfReadExtraParams(extra: extra, pileup: output));
-    params.current = UtfReadExtraParams(pileup: output);
+        pileup: pileup);
 
     var result = VisitResult.take;
 
@@ -176,8 +172,7 @@ extension UtfStringStream on Stream<String> {
 
     any((chunk) {
       ++params.currentNo;
-      params.current!.buffer =
-          (withPosixLineBreaks ? toPosixLineBreaks(chunk) : chunk);
+      params.current = (withPosixLineBreaks ? toPosixLineBreaks(chunk) : chunk);
 
       if (onRead != null) {
         result = onRead(params);

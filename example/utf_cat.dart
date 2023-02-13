@@ -95,7 +95,7 @@ void catBom(UtfType type, bool isWrite) {
 /// Print any chunk of text
 ///
 VisitResult catChunk(UtfReadParams params) {
-  stdout.write(params.current!.buffer);
+  stdout.write(params.current);
 
   return VisitResult.take;
 }
@@ -103,7 +103,7 @@ VisitResult catChunk(UtfReadParams params) {
 /// Print any text (a block or a line)
 ///
 VisitResult catLine(UtfReadParams params) {
-  print(params.current!.buffer);
+  print(params.current);
 
   final maxLineCount = _opts.maxLineCount ?? 0;
   final takenNo = params.takenNo + 1;

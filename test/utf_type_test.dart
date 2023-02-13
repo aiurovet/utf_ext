@@ -6,13 +6,13 @@ import 'package:test/test.dart';
 void main() {
   group('Get UTF type -', () {
     test('empty', () {
-      expect(UtfType.fromBom([]), null);
+      expect(UtfType.fromBom([]), UtfType.none);
     });
     test('too short', () {
-      expect(UtfType.fromBom([0xFE]), null);
+      expect(UtfType.fromBom([0xFE]), UtfType.none);
     });
     test('no BOM', () {
-      expect(UtfType.fromBom([0x41, 0x42, 0x43, 0x44]), null);
+      expect(UtfType.fromBom([0x41, 0x42, 0x43, 0x44]), UtfType.none);
     });
     test('UTF-8', () {
       expect(UtfType.fromBom([0xEF, 0xBB, 0xBF, 0x41]), UtfType.utf8);

@@ -10,7 +10,7 @@ environment:
 dependencies:
   async: ^2.10.0
   file: ^6.1.4
-  loop_visitor: ^0.1.1
+  loop_visitor: ^0.3.0
 
 dev_dependencies:
   file_ext: ^0.3.1

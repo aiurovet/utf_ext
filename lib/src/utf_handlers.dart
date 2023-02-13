@@ -14,37 +14,17 @@ typedef UtfBomHandler = FutureOr<void> Function(UtfType type, bool isWrite);
 ///
 typedef UtfBomHandlerSync = void Function(UtfType type, bool isWrite);
 
-/// Type for read parameters
-///
-class UtfReadExtraParams {
-  /// Current data
-  ///
-  String? buffer;
-
-  /// Reference to an arbitrary object
-  ///
-  dynamic extra;
-
-  /// Reference to an object receiving data from an input incrementally
-  ///
-  dynamic pileup;
-
-  /// Default constructor
-  ///
-  UtfReadExtraParams({this.buffer, this.extra, this.pileup});
-}
-
 /// Called while reading UTF (non-blocking or blocking)
 ///
-typedef UtfReadHandler = VisitHandler<UtfReadExtraParams>;
+typedef UtfReadHandler = VisitHandler<String>;
 
 /// Called while reading UTF (blocking)
 ///
-typedef UtfReadHandlerSync = VisitHandlerSync<UtfReadExtraParams>;
+typedef UtfReadHandlerSync = VisitHandlerSync<String>;
 
 /// Type for read parameters
 ///
-typedef UtfReadParams = VisitParams<UtfReadExtraParams>;
+typedef UtfReadParams = VisitParams<String>;
 
 /// Called while writing UTF (non-blocking or blocking)
 ///
