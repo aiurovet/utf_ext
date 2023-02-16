@@ -6,6 +6,10 @@ import 'dart:async';
 import 'package:loop_visitor/loop_visitor.dart';
 import 'package:utf_ext/utf_ext.dart';
 
+/// Called to read the next portion of data from file or stdin (blocking)
+///
+typedef DataHandlerSync = int Function(List<int>);
+
 /// Called while reading or writing UTF BOM (non-blocking or blocking)
 ///
 typedef UtfBomHandler = FutureOr<void> Function(UtfType type, bool isWrite);

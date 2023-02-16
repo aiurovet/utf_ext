@@ -16,7 +16,7 @@ extension UtfFile on File {
   /// Loop through every line and call user-defined function (non-blocking)
   /// Optionally, you can get the list of all lines by passing [pileup]
   ///
-  Future<int> forEachUtfLine(
+  Future<void> forEachUtfLine(
           {dynamic extra,
           UtfBomHandler? onBom,
           UtfReadHandler? onLine,
@@ -27,15 +27,26 @@ extension UtfFile on File {
   /// Loop through every line and call user-defined function (blocking)
   /// Optionally, you can get the list of all lines by passing [pileup]
   ///
-  int forEachUtfLineSync(
+  void forEachUtfLineSync(
           {dynamic extra,
           UtfBomHandlerSync? onBom,
           UtfReadHandlerSync? onLine,
-          List<String>? pileup}) =>
-      openUtfRead(onBom: onBom, asLines: true)
-          .forEachUtfLineSync(extra: extra, onLine: onLine, pileup: pileup);
+          List<String>? pileup}) {
+    final input = openSync(mode: FileMode.read);
 
-  /// Open stream (from file or stdin) for reading
+    UtfSync.forEachLine(path,
+        extra: extra,
+        maxLength: input.lengthSync(),
+        onBom: onBom,
+        onRead: onLine,
+        pileup: pileup,
+        withPosixLineBreaks: true,
+        onData: (bytes) => input.readIntoSync(bytes));
+
+    input.closeSync();
+  }
+
+  /// Open file stream for reading in non-blocking mode
   ///
   Stream<String> openUtfRead({UtfBomHandler? onBom, bool asLines = false}) {
     final source = openRead();
@@ -45,7 +56,7 @@ extension UtfFile on File {
   }
 
   /// Read the UTF file content (non-blocking) and and convert it to string.\
-  /// If [withPosixLineBreaks] is set, replace all occurrences of
+  /// If [withPosixLineBreaks] is true, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   Future<String> readUtfAsString(
@@ -61,20 +72,30 @@ extension UtfFile on File {
           withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
 
   /// Read the UTF file content (blocking) and convert it to string.\
-  /// If [withPosixLineBreaks] is set, replace all occurrences of
+  /// If [withPosixLineBreaks] is true, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   String readUtfAsStringSync(
-          {dynamic extra,
-          UtfBomHandler? onBom,
-          UtfReadHandlerSync? onRead,
-          StringBuffer? pileup,
-          bool? withPosixLineBreaks = true}) =>
-      openUtfRead(onBom: onBom).readUtfAsStringSync(
-          extra: extra,
-          onRead: onRead,
-          pileup: pileup,
-          withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
+      {dynamic extra,
+      UtfBomHandler? onBom,
+      UtfReadHandlerSync? onRead,
+      StringBuffer? pileup,
+      bool? withPosixLineBreaks = true}) {
+    final input = openSync(mode: FileMode.read);
+
+    final result = UtfSync.readAsString(path,
+        extra: extra,
+        maxLength: input.lengthSync(),
+        onBom: onBom,
+        onRead: onRead,
+        pileup: pileup,
+        withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem,
+        onData: (bytes) => input.readIntoSync(bytes));
+
+    input.closeSync();
+
+    return result;
+  }
 
   /// Convert a list of strings to a sequence of UTF bytes and write those to [sink] (non-blocking).\
   /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
@@ -113,7 +134,7 @@ extension UtfFile on File {
           withPosixLineBreaks: withPosixLineBreaks);
 
   /// Read the UTF file content (non-blocking) and and convert it to string.\
-  /// If [withPosixLineBreaks] is set, replace all occurrences of
+  /// If [withPosixLineBreaks] is true, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   Future<void> writeUtfAsString(String content,
@@ -129,7 +150,7 @@ extension UtfFile on File {
           withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
 
   /// Read the UTF file content (blocking) and and convert it to string.\
-  /// If [withPosixLineBreaks] is set, replace all occurrences of
+  /// If [withPosixLineBreaks] is true, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   void writeUtfAsStringSync(String content,

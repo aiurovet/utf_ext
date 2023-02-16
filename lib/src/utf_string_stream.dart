@@ -25,15 +25,13 @@ extension UtfStringStream on Stream<String> {
   /// \
   /// Return the number of lines read.
   ///
-  Future<int> forEachUtfLine(
+  Future<void> forEachUtfLine(
       {dynamic extra, UtfReadHandler? onLine, List<String>? pileup}) async {
     pileup?.clear();
 
     final isSyncCall = (onLine is UtfReadHandlerSync);
-    final params = UtfReadParams(
-        extra: extra,
-        isSyncCall: isSyncCall,
-        pileup: pileup);
+    final params =
+        UtfReadParams(extra: extra, isSyncCall: isSyncCall, pileup: pileup);
 
     var result = VisitResult.take;
 
@@ -55,8 +53,6 @@ extension UtfStringStream on Stream<String> {
         break;
       }
     }
-
-    return params.takenNo; // the actual number of lines
   }
 
   /// Loop through every line and call user-defined function (blocking)
@@ -64,15 +60,13 @@ extension UtfStringStream on Stream<String> {
   /// \
   /// Return the number of lines read.
   ///
-  int forEachUtfLineSync(
+  void forEachUtfLineSync(
       {dynamic extra, UtfReadHandlerSync? onLine, List<String>? pileup}) {
     pileup?.clear();
 
     final isSyncCall = (onLine is UtfReadHandlerSync);
-    final params = UtfReadParams(
-        extra: extra,
-        isSyncCall: isSyncCall,
-        pileup: pileup);
+    final params =
+        UtfReadParams(extra: extra, isSyncCall: isSyncCall, pileup: pileup);
 
     var result = VisitResult.take;
 
@@ -96,8 +90,6 @@ extension UtfStringStream on Stream<String> {
 
       return false;
     });
-
-    return params.takenNo;
   }
 
   /// Replace all occurrences of POSIX line breaks with the Windows ones
@@ -109,7 +101,7 @@ extension UtfStringStream on Stream<String> {
       .replaceAll('\x01', UtfStringStream.lineBreakWin);
 
   /// Read the UTF file content (non-blocking) and and convert it to string.\
-  /// If [withPosixLineBreaks] is set, replace all occurrences of
+  /// If [withPosixLineBreaks] is true, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one.\
   /// \
   /// Return the wole content if [pileup] is null or empty string otherwise.
@@ -119,16 +111,18 @@ extension UtfStringStream on Stream<String> {
       UtfReadHandler? onRead,
       StringBuffer? pileup,
       bool withPosixLineBreaks = true}) async {
-    var output = (pileup ?? StringBuffer())..clear();
+    pileup?.clear();
 
     final isSyncCall = (onRead is UtfReadHandlerSync);
-    final params = UtfReadParams(extra: extra, isSyncCall: isSyncCall, pileup: pileup);
+    final params =
+        UtfReadParams(extra: extra, isSyncCall: isSyncCall, pileup: pileup);
 
     var result = VisitResult.take;
 
     await for (var buffer in this) {
       ++params.currentNo;
-      params.current = (withPosixLineBreaks ? toPosixLineBreaks(buffer) : buffer);
+      params.current =
+          (withPosixLineBreaks ? toPosixLineBreaks(buffer) : buffer);
 
       if (onRead != null) {
         result = (isSyncCall ? onRead(params) : await onRead(params));
@@ -136,7 +130,7 @@ extension UtfStringStream on Stream<String> {
 
       if ((result == VisitResult.take) || (result == VisitResult.takeAndStop)) {
         ++params.takenNo;
-        output.write(params.current);
+        pileup?.write(params.current);
       }
 
       if ((result == VisitResult.takeAndStop) ||
@@ -145,53 +139,7 @@ extension UtfStringStream on Stream<String> {
       }
     }
 
-    return (pileup == null ? output.toString() : '');
-  }
-
-  /// Read the UTF file content (blocking) and convert it to string.\
-  /// If [withPosixLineBreaks] is set, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one\
-  /// \
-  /// Return the wole content if [pileup] is null or empty string otherwise.
-  ///
-  String readUtfAsStringSync(
-      {dynamic extra,
-      UtfReadHandlerSync? onRead,
-      StringBuffer? pileup,
-      bool withPosixLineBreaks = true}) {
-    var output = (pileup ?? StringBuffer())..clear();
-
-    final params = UtfReadParams(
-        extra: extra,
-        isSyncCall: true,
-        pileup: pileup);
-
-    var result = VisitResult.take;
-
-    output.clear();
-
-    any((chunk) {
-      ++params.currentNo;
-      params.current = (withPosixLineBreaks ? toPosixLineBreaks(chunk) : chunk);
-
-      if (onRead != null) {
-        result = onRead(params);
-      }
-
-      if ((result == VisitResult.take) || (result == VisitResult.takeAndStop)) {
-        ++params.takenNo;
-        output.write(params.current);
-      }
-
-      if ((result == VisitResult.takeAndStop) ||
-          (result == VisitResult.skipAndStop)) {
-        return true;
-      }
-
-      return false;
-    });
-
-    return (pileup == null ? output.toString() : '');
+    return pileup?.toString() ?? '';
   }
 
   /// Replace all occurrences of Windows and old Mac specific

@@ -119,8 +119,7 @@ class UtfEncoderSink extends StringConversionSinkBase {
       if (isShort) {
         // Swap bytes in UTF-16 if needed and write to the output
         //
-        if (_isBigEndianData)
-        {
+        if (_isBigEndianData) {
           output.add((charCode >> 8) & 0xFF);
           output.add((charCode) & 0xFF);
         } else {
@@ -130,8 +129,7 @@ class UtfEncoderSink extends StringConversionSinkBase {
       } else if (isFixLen) {
         // Swap bytes in UTF-32 if needed and write to the output
         //
-        if (_isBigEndianData)
-        {
+        if (_isBigEndianData) {
           output.add((charCode >> 24) & 0xFF);
           output.add((charCode >> 16) & 0xFF);
           output.add((charCode >> 8) & 0xFF);

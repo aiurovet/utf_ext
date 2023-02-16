@@ -51,7 +51,7 @@ extension UtfStdout on Stdout {
           withPosixLineBreaks: withPosixLineBreaks);
 
   /// Read the UTF file content (non-blocking) and and convert it to string.\
-  /// If [withPosixLineBreaks] is set, replace all occurrences of
+  /// If [withPosixLineBreaks] is true, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   Future<void> printUtfAsString(String content,
@@ -67,7 +67,7 @@ extension UtfStdout on Stdout {
           withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
 
   /// Read the UTF file content (blocking) and and convert it to string.\
-  /// If [withPosixLineBreaks] is set, replace all occurrences of
+  /// If [withPosixLineBreaks] is true, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   void printUtfAsStringSync(String content,

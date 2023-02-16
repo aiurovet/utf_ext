@@ -33,7 +33,12 @@ enum UtfType {
     none: <int>[],
     utf8: <int>[0xEF, 0xBB, 0xBF],
     utf32be: <int>[0x00, 0x00, 0xFE, 0xFF],
-    utf32le: <int>[0xFF, 0xFE, 0x00, 0x00], // UTF-32LE should come before UTF-16LE because of fromBom()
+    utf32le: <int>[
+      0xFF,
+      0xFE,
+      0x00,
+      0x00
+    ], // UTF-32LE should come before UTF-16LE because of fromBom()
     utf16be: <int>[0xFE, 0xFF],
     utf16le: <int>[0xFF, 0xFE],
   };
@@ -64,7 +69,8 @@ enum UtfType {
   /// Get BOM length
   ///
   int getBomLength(bool forWrite) {
-    switch (this) { // no fallback
+    switch (this) {
+      // no fallback
       case UtfType.utf8:
         return 3;
       case UtfType.utf16be:

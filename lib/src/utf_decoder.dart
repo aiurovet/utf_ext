@@ -22,31 +22,41 @@ class UtfDecoder extends Converter<List<int>, String> {
 
   /// Default constructor
   ///
-  UtfDecoder(this.id, {UtfBomHandler? onBom, UtfType type = UtfType.none}) {
-    _init(onBom, type);
+  UtfDecoder(this.id,
+      {bool hasSink = true,
+      UtfBomHandler? onBom,
+      Sink<String>? sink,
+      UtfType type = UtfType.none}) {
+    _init(hasSink, onBom, sink, type);
   }
 
   /// Implementation of [convert]
   ///
   @override
-  String convert(List<int> input) => _sink?.convert(input) ?? '';
+  String convert(List<int> input, [int start = 0, int? end]) =>
+      _sink?.convert(input, start, end) ?? '';
 
   /// Initializer
   ///
-  void _init(UtfBomHandler? onBom, UtfType type) {
+  void _init(
+      bool hasSink, UtfBomHandler? onBom, Sink<String>? sink, UtfType type) {
     _onBom = onBom;
     _type = type;
+
+    if (!hasSink) {
+      startChunkedConversion(sink);
+    }
   }
 
   /// Implementation of [startChunkedConversion]
   ///
   @override
-  ByteConversionSink startChunkedConversion(Sink<String> sink) {
-    StringConversionSink stringSink;
+  ByteConversionSink startChunkedConversion(Sink<String>? sink) {
+    StringConversionSink? stringSink;
 
     if (sink is StringConversionSink) {
       stringSink = sink;
-    } else {
+    } else if (sink != null) {
       stringSink = StringConversionSink.from(sink);
     }
 

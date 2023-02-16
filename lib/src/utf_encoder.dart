@@ -25,10 +25,11 @@ class UtfEncoder extends Converter<String, List<int>> {
   /// Default constructor
   ///
   UtfEncoder(this.id,
-      {Sink<List<int>>? sink,
+      {bool hasSink = true,
+      Sink<List<int>>? sink,
       UtfType type = UtfType.none,
       bool withBom = true}) {
-    _init(sink, type, withBom);
+    _init(hasSink, sink, type, withBom);
   }
 
   /// Implementation of [convert]
@@ -38,29 +39,28 @@ class UtfEncoder extends Converter<String, List<int>> {
 
   /// Initializer
   ///
-  void _init(Sink<List<int>>? sink, UtfType type, bool withBom) {
+  void _init(bool hasSink, Sink<List<int>>? sink, UtfType type, bool withBom) {
     _type = type;
     _withBom = withBom;
 
-    if (sink != null) {
-      _sink =
-          UtfEncoderSink(id: id, sink: sink, type: _type, withBom: _withBom);
+    if (!hasSink || (sink != null)) {
+      startChunkedConversion(sink);
     }
   }
 
   /// Implementation of [startChunkedConversion]
   ///
   @override
-  StringConversionSink startChunkedConversion(Sink<List<int>> sink) {
+  StringConversionSink startChunkedConversion(Sink<List<int>>? sink) {
     if (_sink != null) {
       return _sink!;
     }
 
-    ByteConversionSink byteSink;
+    ByteConversionSink? byteSink;
 
     if (sink is ByteConversionSink) {
       byteSink = sink;
-    } else {
+    } else if (sink != null) {
       byteSink = ByteConversionSink.from(sink);
     }
 

@@ -15,5 +15,6 @@ export 'src/utf_handlers.dart';
 export 'src/utf_sink.dart';
 export 'src/utf_stdin.dart';
 export 'src/utf_stdout.dart';
+export 'src/utf_sync.dart';
 export 'src/utf_string_stream.dart';
 export 'src/utf_type.dart';
