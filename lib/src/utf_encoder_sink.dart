@@ -43,7 +43,7 @@ class UtfEncoderSink extends StringConversionSinkBase {
 
   /// Associated sink (actual encoder)
   ///
-  Sink? _sink;
+  ByteConversionSink? _sink;
 
   /// Kind of UTF
   ///
@@ -57,7 +57,7 @@ class UtfEncoderSink extends StringConversionSinkBase {
   /// Default constructor
   ///
   UtfEncoderSink(
-      {this.id, Sink? sink, UtfType type = UtfType.none, bool withBom = true}) {
+      {this.id, ByteConversionSink? sink, UtfType type = UtfType.none, bool withBom = true}) {
     _init(sink, type, withBom);
   }
 
@@ -172,7 +172,7 @@ class UtfEncoderSink extends StringConversionSinkBase {
 
   /// Initializer, called twice: in the beginning and once BOM found
   ///
-  FutureOr<void> _init(Sink? sink, UtfType finalType, bool withBom) async {
+  FutureOr<void> _init(ByteConversionSink? sink, UtfType finalType, bool withBom) async {
     if (sink != null) {
       _sink = sink;
     }

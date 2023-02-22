@@ -20,7 +20,9 @@ class UtfCodec extends Codec<String, List<int>> {
   /// Default constructor
   ///
   UtfCodec(id,
-      {UtfBomHandler? onBom,
+      {bool hasSink = true,
+      UtfBomHandler? onBom,
+      Sink<String>? sink,
       UtfType type = UtfType.none,
       bool withBom = true}) {
     _decoder = UtfDecoder(id, type: type, onBom: onBom);

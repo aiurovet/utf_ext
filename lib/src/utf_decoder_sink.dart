@@ -56,9 +56,9 @@ class UtfDecoderSink extends ByteConversionSinkBase {
   ///
   UtfBomHandler? _onBom;
 
-  /// Associated sink (actual decoder)
+  /// Associated low-level sink
   ///
-  Sink? _sink;
+  StringConversionSink? _sink;
 
   /// Kind of UTF
   ///
@@ -70,7 +70,7 @@ class UtfDecoderSink extends ByteConversionSinkBase {
   UtfDecoderSink(
       {this.id,
       UtfBomHandler? onBom,
-      Sink? sink,
+      StringConversionSink? sink,
       UtfType type = UtfType.none}) {
     _onBom = onBom;
     _init(sink, type);
@@ -250,7 +250,7 @@ class UtfDecoderSink extends ByteConversionSinkBase {
 
   /// Initializer, called twice: in the beginning and once BOM found
   ///
-  FutureOr<void> _init(Sink? sink, UtfType finalType) async {
+  FutureOr<void> _init(StringConversionSink? sink, UtfType finalType) async {
     final isBomDone = ((sink == null) || (sink == _sink));
 
     if (!isBomDone) {
