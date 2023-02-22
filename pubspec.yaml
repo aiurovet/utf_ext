@@ -1,11 +1,11 @@
 name: utf_ext
-description: A starting point for Dart libraries or applications.
+description: A library for reading / writing text files in any major Unicode format (UTF-8,16LE,16BE,32LE,32BE)
 version: 0.1.0
 homepage: https://aiurovet.blogspot.com/
 repository: https://github.com/aiurovet/utf_ext/
 
 environment:
-  sdk: '>=2.18.6 <3.0.0'
+  sdk: '>=2.19.2 <3.0.0'
 
 dependencies:
   async: ^2.10.0

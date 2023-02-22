@@ -26,11 +26,11 @@ final _opts = Options();
 class Options {
   /// Const: application name
   ///
-  static const appName = 'ucat';
+  static const appName = 'utf_cat';
 
   /// Const: application version
   ///
-  static const appVersion = '0.1.0';
+  static const appVersion = '1.0.0';
 
   /// Option flag: read file line by line synchronously
   ///
@@ -170,6 +170,8 @@ Future<bool> processStdin() async {
 ///
 Never usage() {
   _logger.info('''
+A tool to print a file or ${UtfStdin.name} content in any major UTF format
+
 USAGE:
 
 ${Options.appName} [OPTIONS] [ARGUMENTS]

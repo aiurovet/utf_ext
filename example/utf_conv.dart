@@ -27,11 +27,11 @@ final _opts = Options();
 class Options {
   /// Const: application name
   ///
-  static const appName = 'uconv';
+  static const appName = 'utf_conv';
 
   /// Const: application version
   ///
-  static const appVersion = '0.1.0';
+  static const appVersion = '1.0.0';
 
   /// Option flag: read file line by line synchronously
   ///
@@ -50,7 +50,7 @@ class Options {
   ///
   void parse(List<String> args) {
     var optDefs = '''
-      |?,h,help|q,quiet|v,verbose|l,line:?|s,sync|t,to:|::?
+      |?,h,help|q,quiet|v,verbose|l,line:?|s,sync,synch|t,to:|::?
     ''';
 
     var o = parseArgs(optDefs, args);
@@ -236,17 +236,20 @@ String toOutPath(String inpPath) {
 ///
 Never usage() {
   _logger.info('''
+A tool to convert file or ${UtfStdin.name} content from one UTF format to another
+
 USAGE:
 
 ${Options.appName} [OPTIONS] [ARGUMENTS]
 
 OPTIONS:
 
--?, -h[elp]      - this help screen
--l[ine] [MAXNUM] - convert line by line (default: convert chunks of text),
-                   limit to MAXNUM (default: no limit)
--s[ync]          - convert synchronously
--t[o] TYPE       - convert the input into the output of the given type (default: utf8 without BOM)
+-?, -h[elp]    - this help screen
+-l[ine] MAXNUM - convert line by line (default: convert chunks of text),
+                 limit to MAXNUM (0 = no limit)
+-s[ync]        - convert synchronously
+-t[o] TYPE     - convert the input into the output of the given type (default: utf8 without BOM)
+                 supported TYPEs: utf8 (with BOM or not), utf16le, utf16be, utf32le, utf32be
 
 ARGUMENTS:
 
