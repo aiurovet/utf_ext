@@ -92,10 +92,10 @@ class UtfEncoderSink extends StringConversionSinkBase {
   /// Actual byte converter for any type of UTF
   ///
   Uint8List convert(String source, [int start = 0, int? end]) {
-    var len = source.length;
-    end ??= len;
+    var length = source.length;
+    end ??= length;
 
-    if ((start > 0) || (end < len)) {
+    if ((start > 0) || (end < length)) {
       source = source.substring(start, end);
     }
 
@@ -111,9 +111,9 @@ class UtfEncoderSink extends StringConversionSinkBase {
     final charCodes =
         (isShort ? source.codeUnits : source.runes.toList(growable: false));
 
-    len = charCodes.length;
+    length = charCodes.length;
 
-    for (var cur = 0; cur < len; cur++) {
+    for (var cur = 0; cur < length; cur++) {
       var charCode = charCodes[cur];
 
       if (isShort) {
@@ -178,7 +178,7 @@ class UtfEncoderSink extends StringConversionSinkBase {
     }
 
     _bomLength = finalType.getBomLength(true);
-    _type = (finalType == UtfType.none ? UtfType.fallbackForWrite : finalType);
+    _type = (finalType == UtfType.none ? UtfConfig.fallbackForWrite : finalType);
     _withBom = withBom;
 
     _isBigEndianData = _type.isBigEndian(true);

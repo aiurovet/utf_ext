@@ -94,7 +94,7 @@ void catBom(UtfType type, bool isWrite) {
 
 /// Print any chunk of text
 ///
-VisitResult catChunk(UtfReadParams params) {
+VisitResult catChunk(UtfIoParams params) {
   stdout.write(params.current);
 
   return VisitResult.take;
@@ -102,7 +102,7 @@ VisitResult catChunk(UtfReadParams params) {
 
 /// Print any text (a block or a line)
 ///
-VisitResult catLine(UtfReadParams params) {
+VisitResult catLine(UtfIoParams params) {
   print(params.current);
 
   final maxLineCount = _opts.maxLineCount ?? 0;
@@ -131,15 +131,15 @@ Future<bool> processFile(String path) async {
 
   if (_opts.maxLineCount == null) {
     if (_opts.isSynch) {
-      file.readUtfAsStringSync(onBom: catBom, onRead: catChunk);
+      file.readUtfAsStringSync(onBom: catBom, onUtfIo: catChunk);
     } else {
-      await file.readUtfAsString(onBom: catBom, onRead: catChunk);
+      await file.readUtfAsString(onBom: catBom, onUtfIo: catChunk);
     }
   } else {
     if (_opts.isSynch) {
-      file.forEachUtfLineSync(onBom: catBom, onLine: catLine);
+      file.readUtfAsLinesSync(onBom: catBom, onLine: catLine);
     } else {
-      await file.forEachUtfLine(onBom: catBom, onLine: catLine);
+      await file.readUtfAsLines(onBom: catBom, onLine: catLine);
     }
   }
 
@@ -151,15 +151,15 @@ Future<bool> processFile(String path) async {
 Future<bool> processStdin() async {
   if (_opts.maxLineCount == null) {
     if (_opts.isSynch) {
-      stdin.readUtfAsStringSync(onBom: catBom, onRead: catChunk);
+      stdin.readUtfAsStringSync(onBom: catBom, onUtfIo: catChunk);
     } else {
-      await stdin.readUtfAsString(onBom: catBom, onRead: catChunk);
+      await stdin.readUtfAsString(onBom: catBom, onUtfIo: catChunk);
     }
   } else {
     if (_opts.isSynch) {
-      stdin.forEachLineSync(onBom: catBom, onLine: catLine);
+      stdin.readAsLinesSync(onBom: catBom, onLine: catLine);
     } else {
-      await stdin.forEachLine(onBom: catBom, onLine: catLine);
+      await stdin.readAsLines(onBom: catBom, onLine: catLine);
     }
   }
 

@@ -6,9 +6,9 @@ import 'dart:async';
 import 'package:loop_visitor/loop_visitor.dart';
 import 'package:utf_ext/utf_ext.dart';
 
-/// Called to read the next portion of data from file or stdin (blocking)
+/// Called to read/write the next portion of data from/to file or stdin/stdout (blocking)
 ///
-typedef DataHandlerSync = int Function(List<int>);
+typedef ByteIoHandlerSync = int Function(List<int> bytes, [int start, int? end]);
 
 /// Called while reading or writing UTF BOM (non-blocking or blocking)
 ///
@@ -20,24 +20,12 @@ typedef UtfBomHandlerSync = void Function(UtfType type, bool isWrite);
 
 /// Called while reading UTF (non-blocking or blocking)
 ///
-typedef UtfReadHandler = VisitHandler<String>;
+typedef UtfIoHandler = VisitHandler<String>;
 
 /// Called while reading UTF (blocking)
 ///
-typedef UtfReadHandlerSync = VisitHandlerSync<String>;
+typedef UtfIoHandlerSync = VisitHandlerSync<String>;
 
 /// Type for read parameters
 ///
-typedef UtfReadParams = VisitParams<String>;
-
-/// Called while writing UTF (non-blocking or blocking)
-///
-typedef UtfWriteHandler = VisitHandler<String>;
-
-/// Called while writing UTF (blocking)
-///
-typedef UtfWriteHandlerSync = VisitHandlerSync<String>;
-
-/// Type for write parameters
-///
-typedef UtfWriteParams = VisitParams<String>;
+typedef UtfIoParams = VisitParams<String>;

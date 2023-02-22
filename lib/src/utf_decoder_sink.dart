@@ -258,7 +258,7 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     }
 
     _bomLength = finalType.getBomLength(false);
-    _type = (finalType == UtfType.none ? UtfType.fallbackForRead : finalType);
+    _type = (finalType == UtfType.none ? UtfConfig.fallbackForRead : finalType);
 
     _isBigEndianData = _type.isBigEndian(false);
     _isFixedLengthShort = _type.isFixedLengthShort(false);

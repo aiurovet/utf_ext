@@ -44,7 +44,7 @@ class Options {
 
   final paths = <String>[];
 
-  var toType = UtfType.fallbackForWrite;
+  var toType = UtfConfig.fallbackForWrite;
 
   /// Primitive command-line parser
   ///
@@ -63,7 +63,7 @@ class Options {
 
     maxLineCount = o.getIntValue('l');
     isSyncCall = o.isSet('s');
-    toType = UtfType.parse(o.getStrValue('t'), UtfType.fallbackForWrite);
+    toType = UtfType.parse(o.getStrValue('t'), UtfConfig.fallbackForWrite);
 
     paths.addAll(o.getStrValues(''));
     paths.removeWhere((x) => x.trim().isEmpty);
@@ -86,14 +86,6 @@ class OutInfo {
   OutInfo(String id, this.sink, {UtfType type = UtfType.none}) {
     encoder = UtfEncoder(id, sink: sink, type: type);
   }
-
-  /// Destruction (non-blocking)
-  ///
-  Future<void> flushAndClose() async => await sink.flushAndClose();
-
-  /// Destruction (blocking)
-  ///
-  void flushAndCloseSync() => sink.flushAndClose();
 
   /// Write piece of data (non-blocking)
   ///
@@ -128,7 +120,7 @@ Future<void> main(List<String> args) async {
 
 /// Write any chunk of text to the output sink (non-blocing)
 ///
-Future<VisitResult> convChunk(UtfReadParams params) async {
+Future<VisitResult> convChunk(UtfIoParams params) async {
   await (params.extra as OutInfo).writeUtfChunk(params.current!);
 
   return VisitResult.take;
@@ -136,7 +128,7 @@ Future<VisitResult> convChunk(UtfReadParams params) async {
 
 /// Write any chunk of text to the output sink (non-blocing)
 ///
-VisitResult convChunkSync(UtfReadParams params) {
+VisitResult convChunkSync(UtfIoParams params) {
   (params.extra as OutInfo).writeUtfChunkSync(params.current!);
 
   return VisitResult.take;
@@ -144,12 +136,12 @@ VisitResult convChunkSync(UtfReadParams params) {
 
 /// Write a line of text to the output sink (non-blocing)
 ///
-FutureOr<VisitResult> convLine(UtfReadParams params) async {
+FutureOr<VisitResult> convLine(UtfIoParams params) async {
   final maxLineCount = _opts.maxLineCount ?? 0;
   final takenNo = params.takenNo + 1;
   final canStop = ((maxLineCount > 0) && (takenNo >= maxLineCount));
 
-  final buffer = '${params.current!}${UtfStringStream.lineBreak}';
+  final buffer = '${params.current!}${UtfConst.lineBreak}';
   (params.extra as OutInfo).writeUtfChunkSync(buffer);
 
   return (canStop ? VisitResult.takeAndStop : VisitResult.take);
@@ -157,12 +149,12 @@ FutureOr<VisitResult> convLine(UtfReadParams params) async {
 
 /// Write a line of text to the output sink (non-blocing)
 ///
-VisitResult convLineSync(UtfReadParams params) {
+VisitResult convLineSync(UtfIoParams params) {
   final maxLineCount = _opts.maxLineCount ?? 0;
   final takenNo = params.takenNo + 1;
   final canStop = ((maxLineCount > 0) && (takenNo >= maxLineCount));
 
-  final buffer = '${params.current!}${UtfStringStream.lineBreak}';
+  final buffer = '${params.current!}${UtfConst.lineBreak}';
   (params.extra as OutInfo).writeUtfChunkSync(buffer);
 
   return (canStop ? VisitResult.takeAndStop : VisitResult.take);
@@ -194,19 +186,15 @@ Future<void> processFile(String path) async {
 
   if (maxLineCount == null) {
     if (isSync) {
-      inpFile.readUtfAsStringSync(onRead: convChunkSync, extra: outInfo);
-      outInfo.flushAndCloseSync();
+      inpFile.readUtfAsStringSync(onUtfIo: convChunkSync, extra: outInfo);
     } else {
-      await inpFile.readUtfAsString(onRead: convChunk, extra: outInfo);
-      await outInfo.flushAndClose();
+      await inpFile.readUtfAsString(onUtfIo: convChunk, extra: outInfo);
     }
   } else {
     if (isSync) {
-      inpFile.forEachUtfLineSync(onLine: convLineSync, extra: outInfo);
-      outInfo.flushAndCloseSync();
+      inpFile.readUtfAsLinesSync(onLine: convLineSync, extra: outInfo);
     } else {
-      await inpFile.forEachUtfLine(onLine: convLine, extra: outInfo);
-      await outInfo.flushAndClose();
+      await inpFile.readUtfAsLines(onLine: convLine, extra: outInfo);
     }
   }
 }
@@ -222,19 +210,15 @@ Future<void> processStdin() async {
 
   if (maxLineCount == null) {
     if (isSync) {
-      stdin.readUtfAsStringSync(onRead: convChunkSync, extra: outInfo);
-      stdout.flushAndCloseSync();
+      stdin.readUtfAsStringSync(onUtfIo: convChunkSync, extra: outInfo);
     } else {
-      await stdin.readUtfAsString(onRead: convChunk, extra: outInfo);
-      await stdout.flushAndClose();
+      await stdin.readUtfAsString(onUtfIo: convChunk, extra: outInfo);
     }
   } else {
     if (isSync) {
-      stdin.forEachLineSync(onLine: convLineSync, extra: outInfo);
-      stdout.flushAndCloseSync();
+      stdin.readAsLinesSync(onLine: convLineSync, extra: outInfo);
     } else {
-      await stdin.forEachLine(onLine: convLine, extra: outInfo);
-      await stdout.flushAndClose();
+      await stdin.readAsLines(onLine: convLine, extra: outInfo);
     }
   }
 }

@@ -18,39 +18,64 @@ extension UtfStdin on Stdin {
   /// Loop through every line and call user-defined function (non-blocking)
   /// Optionally, you can get the list of all lines by passing [lines]
   ///
-  Future<void> forEachLine(
+  Future<void> readAsLines(
           {dynamic extra,
           UtfBomHandler? onBom,
-          UtfReadHandler? onLine,
+          UtfIoHandler? onLine,
           List<String>? pileup}) async =>
       await openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: true)
-          .forEachUtfLine(extra: extra, onLine: onLine, pileup: pileup);
+          .readUtfAsLines(extra: extra, onLine: onLine, pileup: pileup);
 
   /// Loop through every line and call user-defined function (blocking)
   /// Optionally, you can get the list of all lines by passing [pileup]
   ///
-  void forEachLineSync(
+  void readAsLinesSync(
           {dynamic extra,
           UtfBomHandler? onBom,
-          UtfReadHandlerSync? onLine,
-          List<String>? pileup}) =>
-      openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: true)
-          .forEachUtfLineSync(extra: extra, onLine: onLine, pileup: pileup);
+          UtfIoHandlerSync? onLine,
+          List<String>? pileup}) {
+    UtfHelper.readAsLinesSync(name,
+        extra: extra,
+        maxLength: null,
+        onBom: onBom,
+        onByteIo: readIntoSync,
+        onUtfIo: onLine,
+        pileup: pileup,
+        withPosixLineBreaks: isPosixOS);
+  }
+
+  /// Read the number of bytes (blocking) and return the number of bytes read
+  ///
+  int readIntoSync(List<int> bytes, [int start = 0, int? end]) {
+    end ??= bytes.length;
+
+    for (var i = start; i < end; i++) {
+      final byte = readByteSync();
+
+      if (byte == -1) {
+        return (i - start);
+      }
+
+      bytes[i] = byte;
+    }
+
+    return end - start;
+  }
 
   /// Read stdin content as UTF (non-blocking) and and convert it to string.\
   /// If [withPosixLineBreaks] is true, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
-  Future<String> readUtfAsString(
+  Future<void> readUtfAsString(
           {dynamic extra,
           UtfBomHandler? onBom,
-          UtfReadHandler? onRead,
+          UtfIoHandler? onUtfIo,
           StringBuffer? pileup,
           bool? withPosixLineBreaks = true}) async =>
       await openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: false)
           .readUtfAsString(
               extra: extra,
-              onRead: onRead,
+              onUtfIo: onUtfIo,
               pileup: pileup,
               withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
 
@@ -58,38 +83,17 @@ extension UtfStdin on Stdin {
   /// If [withPosixLineBreaks] is true, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
-  String readUtfAsStringSync(
+  void readUtfAsStringSync(
       {dynamic extra,
       UtfBomHandler? onBom,
-      UtfReadHandlerSync? onRead,
+      UtfIoHandlerSync? onUtfIo,
       StringBuffer? pileup,
-      bool? withPosixLineBreaks = true}) {
-    var curByte = 0;
-
-    return UtfSync.readAsString(name,
+      bool? withPosixLineBreaks = true}) =>
+    UtfHelper.readAsStringSync(name,
         extra: extra,
         onBom: onBom,
-        onRead: onRead,
+        onByteIo: readIntoSync,
+        onUtfIo: onUtfIo,
         pileup: pileup,
-        withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS, onData: (bytes) {
-      if (curByte == -1) {
-        return 0;
-      }
-
-      var curLength = 0;
-      var maxLength = bytes.length;
-
-      for (; curLength < maxLength; ++curLength) {
-        curByte = readByteSync();
-
-        if (curByte == -1) {
-          break;
-        }
-
-        bytes[curLength] = curByte;
-      }
-
-      return curLength;
-    });
-  }
+        withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
 }

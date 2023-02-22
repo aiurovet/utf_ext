@@ -35,7 +35,7 @@ class UtfEncoder extends Converter<String, List<int>> {
   /// Implementation of [convert]
   ///
   @override
-  Uint8List convert(String input) => _sink?.convert(input) ?? UtfType.emptyBom;
+  Uint8List convert(String input, [int start = 0, int? end]) => _sink?.convert(input, start, end) ?? UtfType.emptyBom;
 
   /// Initializer
   ///
