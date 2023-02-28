@@ -8,16 +8,19 @@ import 'package:utf_ext/utf_ext.dart';
 /// Helper class to manage callbacks for text files
 ///
 extension UtfStringStream on Stream<String> {
-  /// Loop through every line and call user-defined function (non-blocking)
-  /// Optionally, you can get the list of all lines by passing [lines].\
+  /// Loops through every line read from a stream and calls a user-defined function\
   /// \
-  /// Return the number of lines read.
+  /// [extra] - user-defined data\
+  /// [onRead] - a function called upon every line of text after being read\
+  /// [pileup] - if not null, accumulates all lines of text\
+  /// \
+  /// Returns [pileup] if not null or an empty list otherwise
   ///
   Future<List<String>> readUtfAsLines(
-      {dynamic extra, UtfIoHandler? onLine, List<String>? pileup}) async {
+      {dynamic extra, UtfIoHandler? onRead, List<String>? pileup}) async {
     pileup?.clear();
 
-    final isSyncCall = (onLine is UtfIoHandlerSync);
+    final isSyncCall = (onRead is UtfIoHandlerSync);
     final params =
         UtfIoParams(extra: extra, isSyncCall: isSyncCall, pileup: pileup);
 
@@ -27,8 +30,8 @@ extension UtfStringStream on Stream<String> {
       ++params.currentNo;
       params.current = line;
 
-      if (onLine != null) {
-        result = (isSyncCall ? onLine(params) : await onLine(params));
+      if (onRead != null) {
+        result = (isSyncCall ? onRead(params) : await onRead(params));
       }
 
       if (result.isTake) {
@@ -44,20 +47,23 @@ extension UtfStringStream on Stream<String> {
     return pileup ?? <String>[];
   }
 
-  /// Read the UTF file content (non-blocking) and and convert it to string.\
-  /// If [withPosixLineBreaks] is true, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one.\
+  /// Loops through every line read from a stream and calls a user-defined function\
   /// \
-  /// Return the wole content if [pileup] is null or empty string otherwise.
+  /// [extra] - user-defined data\
+  /// [onRead] - a function called upon every line of text after being read\
+  /// [pileup] - if not null, accumulates the whole content\
+  /// [withPosixLineBreaks] - if true (default) replace each CR/LF with LF
+  /// \
+  /// Returns [pileup] if not null or an empty string otherwise
   ///
   Future<String> readUtfAsString(
       {dynamic extra,
-      UtfIoHandler? onUtfIo,
+      UtfIoHandler? onRead,
       StringBuffer? pileup,
       bool withPosixLineBreaks = true}) async {
     pileup?.clear();
 
-    final isSyncCall = (onUtfIo is UtfIoHandlerSync);
+    final isSyncCall = (onRead is UtfIoHandlerSync);
     final params =
         UtfIoParams(extra: extra, isSyncCall: isSyncCall, pileup: pileup);
 
@@ -68,8 +74,8 @@ extension UtfStringStream on Stream<String> {
       params.current =
           (withPosixLineBreaks ? UtfHelper.toPosixLineBreaks(buffer) : buffer);
 
-      if (onUtfIo != null) {
-        result = (isSyncCall ? onUtfIo(params) : await onUtfIo(params));
+      if (onRead != null) {
+        result = (isSyncCall ? onRead(params) : await onRead(params));
       }
 
       if (result.isTake) {

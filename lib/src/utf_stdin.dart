@@ -15,36 +15,47 @@ extension UtfStdin on Stdin {
   ///
   static const name = '<stdin>';
 
-  /// Loop through every line and call user-defined function (non-blocking)
-  /// Optionally, you can get the list of all lines by passing [lines]
+  /// Loops through every line read from [stdin] and calls a user-defined function (non-blocking)\
+  /// \
+  /// [extra] - user-defined data\
+  /// [onBom] - a function called upon the read of the byte order mark\
+  /// [onRead] - a function called upon every line of text after being read\
+  /// [pileup] - if not null, accumulate all lines under that\
+  /// \
+  /// Returns [pileup] if not null or an empty list otherwise
   ///
-  Future<void> readAsLines(
+  Future<List<String>> readAsLines(
           {dynamic extra,
           UtfBomHandler? onBom,
-          UtfIoHandler? onLine,
+          UtfIoHandler? onRead,
           List<String>? pileup}) async =>
       await openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: true)
-          .readUtfAsLines(extra: extra, onLine: onLine, pileup: pileup);
+          .readUtfAsLines(extra: extra, onRead: onRead, pileup: pileup);
 
-  /// Loop through every line and call user-defined function (blocking)
-  /// Optionally, you can get the list of all lines by passing [pileup]
+  /// Loops through every line read from [stdin] and calls a user-defined function (blocking)\
+  /// \
+  /// [extra] - user-defined data\
+  /// [onBom] - a function called upon the read of the byte order mark\
+  /// [onRead] - a function called upon every line of text after being read\
+  /// [pileup] - if not null, accumulate all lines under that\
+  /// \
+  /// Returns [pileup] if not null or an empty list otherwise
   ///
-  void readAsLinesSync(
+  List<String> readAsLinesSync(
           {dynamic extra,
           UtfBomHandler? onBom,
-          UtfIoHandlerSync? onLine,
-          List<String>? pileup}) {
-    UtfHelper.readAsLinesSync(name,
-        extra: extra,
-        maxLength: null,
-        onBom: onBom,
-        onByteIo: readIntoSync,
-        onUtfIo: onLine,
-        pileup: pileup,
-        withPosixLineBreaks: isPosixOS);
-  }
+          UtfIoHandlerSync? onRead,
+          List<String>? pileup}) =>
+      UtfHelper.readAsLinesSync(name,
+          extra: extra,
+          maxLength: null,
+          onBom: onBom,
+          byteReader: readIntoSync,
+          onRead: onRead,
+          pileup: pileup,
+          withPosixLineBreaks: isPosixOS);
 
-  /// Read the number of bytes (blocking) and return the number of bytes read
+  /// Reads the number of bytes (blocking) and returns the number of bytes read
   ///
   int readIntoSync(List<int> bytes, [int start = 0, int? end]) {
     end ??= bytes.length;
@@ -62,38 +73,50 @@ extension UtfStdin on Stdin {
     return end - start;
   }
 
-  /// Read stdin content as UTF (non-blocking) and and convert it to string.\
-  /// If [withPosixLineBreaks] is true, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one
+  /// Reads the UTF content from [stdin] (non-blocking) and converts it to a string.\
+  /// \
+  /// [extra] - user-defined data\
+  /// [onBom] - a function called upon the read of the byte order mark\
+  /// [onRead] - a function called upon every chunk of text after being read\
+  /// [pileup] - if not null, accumulates all lines under that\
+  /// [withPosixLineBreaks] - if true (default) replace CR/LF with LF
+  /// \
+  /// Returns [pileup] if not null or an empty list otherwise
   ///
-  Future<void> readUtfAsString(
+  Future<String> readUtfAsString(
           {dynamic extra,
           UtfBomHandler? onBom,
-          UtfIoHandler? onUtfIo,
+          UtfIoHandler? onRead,
           StringBuffer? pileup,
           bool? withPosixLineBreaks = true}) async =>
       await openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: false)
           .readUtfAsString(
               extra: extra,
-              onUtfIo: onUtfIo,
+              onRead: onRead,
               pileup: pileup,
               withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
 
-  /// Read stdin content as UTF (blocking) and convert it to string.\
-  /// If [withPosixLineBreaks] is true, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one
+  /// Reads the UTF content from [stdin] (blocking) and converts it to a string.\
+  /// \
+  /// [extra] - user-defined data\
+  /// [onBom] - a function called upon the read of the byte order mark\
+  /// [onRead] - a function called upon every chunk of text after being read\
+  /// [pileup] - if not null, accumulates all lines under that\
+  /// [withPosixLineBreaks] - if true (default) replace CR/LF with LF
+  /// \
+  /// Returns [pileup] if not null or an empty list otherwise
   ///
-  void readUtfAsStringSync(
-      {dynamic extra,
-      UtfBomHandler? onBom,
-      UtfIoHandlerSync? onUtfIo,
-      StringBuffer? pileup,
-      bool? withPosixLineBreaks = true}) =>
-    UtfHelper.readAsStringSync(name,
-        extra: extra,
-        onBom: onBom,
-        onByteIo: readIntoSync,
-        onUtfIo: onUtfIo,
-        pileup: pileup,
-        withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
+  String readUtfAsStringSync(
+          {dynamic extra,
+          UtfBomHandler? onBom,
+          UtfIoHandlerSync? onRead,
+          StringBuffer? pileup,
+          bool? withPosixLineBreaks = true}) =>
+      UtfHelper.readAsStringSync(name,
+          extra: extra,
+          onBom: onBom,
+          byteReader: readIntoSync,
+          onRead: onRead,
+          pileup: pileup,
+          withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
 }

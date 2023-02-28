@@ -10,7 +10,7 @@ import 'package:utf_ext/utf_ext.dart';
 /// of the Unicode encodings: UTF-8, UTF-16, UTF-32
 ///
 extension UtfSink on IOSink {
-  /// Add UTF bytes
+  /// Converts [chunk] of text to bytes and adds that to IOSink
   ///
   void _addUtfChunk(UtfEncoder encoder, String chunk) {
     final bytes = encoder.convert(chunk);
@@ -20,59 +20,75 @@ extension UtfSink on IOSink {
     }
   }
 
-  /// Convert a list of strings to a sequence of UTF bytes and write those to [sink] (non-blocking).\
-  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
-  /// the Windows-specific ones
+  /// Converts a sequence of strings into bytes and adds those to IOSink (non-blocking)\
+  /// \
+  /// [lines] - the whole content broken into lines with no line break
+  /// [extra] - user-defined data\
+  /// [type] - UTF type\
+  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [withBom] - if true (default if [type] is defined) byte order mark is printed\
+  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
   Future<void> writeUtfAsLines(String id, List<String> lines,
-      {UtfType type = UtfType.none,
-      UtfIoHandler? onUtfIo,
-      dynamic extra,
+      {dynamic extra,
+      UtfIoHandler? onWrite,
+      UtfType type = UtfType.none,
       bool? withBom,
       bool withPosixLineBreaks = true}) async {
     final encoder = UtfEncoder(id,
         sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
-    final isSyncCall = (onUtfIo is UtfIoHandlerSync);
+    final isSyncCall = (onWrite is UtfIoHandlerSync);
     final params = UtfIoParams(extra: extra, isSyncCall: isSyncCall);
 
     for (final line in lines) {
       params.current = line;
 
       await writeUtfChunk(encoder, line,
-          onUtfIo: onUtfIo,
+          onWrite: onWrite,
           params: params,
           withPosixLineBreaks: withPosixLineBreaks);
     }
   }
 
-  /// Convert string to a sequence of UTF bytes and write that to [sink] (non-blocking).\
-  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
-  /// the Windows-specific ones
+  /// Converts a sequence of strings into bytes and adds those to IOSink (blocking)\
+  /// \
+  /// [lines] - the whole content broken into lines with no line break
+  /// [extra] - user-defined data\
+  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [type] - UTF type
+  /// [withBom] - if true (default if [type] is defined) byte order mark is printed\
+  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
   Future<void> writeUtfAsString(String id, String content,
       {dynamic extra,
-      UtfIoHandler? onUtfIo,
+      UtfIoHandler? onWrite,
       UtfType type = UtfType.none,
       bool? withBom,
       bool withPosixLineBreaks = true}) async {
-    final encoder = UtfEncoder(id, sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
+    final encoder = UtfEncoder(id,
+        sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
     final params = UtfIoParams(current: content, extra: extra);
 
     await writeUtfChunk(encoder, content,
-        onUtfIo: onUtfIo,
+        onWrite: onWrite,
         params: params,
         withPosixLineBreaks: withPosixLineBreaks);
   }
 
-  /// Convert string to a sequence of UTF bytes and write that to [sink] (non-blocking).\
-  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
-  /// the Windows-specific ones
+  /// Converts a [chunk] of text into bytes and adds those to IOSink (non-blocking),\
+  /// can be called sequentially\
+  /// \
+  /// [content] - the whole content (string) to write\
+  /// [extra] - user-defined data\
+  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [params] - current cvhunk info holder
+  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
   Future<VisitResult> writeUtfChunk(UtfEncoder encoder, String chunk,
-      {UtfIoHandler? onUtfIo,
+      {UtfIoHandler? onWrite,
       UtfIoParams? params,
       bool withPosixLineBreaks = true}) async {
-    final isSyncCall = params?.isSyncCall ?? (onUtfIo is UtfIoHandlerSync);
+    final isSyncCall = params?.isSyncCall ?? (onWrite is UtfIoHandlerSync);
     var result = VisitResult.take;
 
     if (!withPosixLineBreaks) {
@@ -82,8 +98,9 @@ extension UtfSink on IOSink {
     ++params?.currentNo;
     params?.current = chunk;
 
-    if ((onUtfIo != null) && (params != null)) {
-      result = (isSyncCall ? onUtfIo(params) : await onUtfIo(params)) as VisitResult;
+    if ((onWrite != null) && (params != null)) {
+      result =
+          (isSyncCall ? onWrite(params) : await onWrite(params)) as VisitResult;
     }
 
     if (result.isTake) {
@@ -94,12 +111,17 @@ extension UtfSink on IOSink {
     return result;
   }
 
-  /// Convert string to a sequence of UTF bytes and write that to [sink] (non-blocking).\
-  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
-  /// the Windows-specific ones
+  /// Converts a [chunk] of text into bytes and adds those to IOSink (blocking),\
+  /// can be called sequentially\
+  /// \
+  /// [encoder] - UTF encoder\
+  /// [chunk] - chunk of text\
+  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [params] - current chunk info holder\
+  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
   Future<VisitResult> writeUtfChunkSync(UtfEncoder encoder, String chunk,
-      {UtfIoHandlerSync? onUtfIo,
+      {UtfIoHandlerSync? onWrite,
       UtfIoParams? params,
       bool withPosixLineBreaks = true}) async {
     var result = VisitResult.take;
@@ -111,8 +133,8 @@ extension UtfSink on IOSink {
     ++params?.currentNo;
     params?.current = chunk;
 
-    if ((onUtfIo != null) && (params != null)) {
-      result = onUtfIo(params);
+    if ((onWrite != null) && (params != null)) {
+      result = onWrite(params);
     }
 
     if (result.isTake) {

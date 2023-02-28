@@ -8,12 +8,11 @@ class UtfConst {
   ///
   static const lineBreak = '\n';
 
-  /// Const: line break (MacOS)
+  /// Const: line break (old versions of MacOS)
   ///
   static const lineBreakMac = '\r';
 
   /// Const: line break (Windows)
   ///
   static const lineBreakWin = '\r\n';
-
 }

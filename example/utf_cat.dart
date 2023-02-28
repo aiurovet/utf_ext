@@ -43,7 +43,7 @@ class Options {
 
   final paths = <String>[];
 
-  /// Primitive command-line parser
+  /// Simple command-line parser using `parse_args` package
   ///
   void parse(List<String> args) {
     var optDefs = '''
@@ -66,27 +66,7 @@ class Options {
   }
 }
 
-/// Entry point
-///
-Future<void> main(List<String> args) async {
-  try {
-    _opts.parse(args);
-
-    if (_opts.paths.isEmpty) {
-      await processStdin();
-    } else {
-      for (var path in _opts.paths) {
-        await processFile(path);
-      }
-    }
-  } on Error catch (e) {
-    onFailure(e);
-  } on Exception catch (e) {
-    onFailure(e);
-  }
-}
-
-/// Print any chunk of text
+/// Print byte order mark
 ///
 void catBom(UtfType type, bool isWrite) {
   print('Byte Order Mark: $type');
@@ -112,6 +92,26 @@ VisitResult catLine(UtfIoParams params) {
   return (canStop ? VisitResult.takeAndStop : VisitResult.take);
 }
 
+/// Entry point
+///
+Future<void> main(List<String> args) async {
+  try {
+    _opts.parse(args);
+
+    if (_opts.paths.isEmpty) {
+      await processStdin();
+    } else {
+      for (var path in _opts.paths) {
+        await processFile(path);
+      }
+    }
+  } on Error catch (e) {
+    onFailure(e);
+  } on Exception catch (e) {
+    onFailure(e);
+  }
+}
+
 /// Error handler
 ///
 Never onFailure(dynamic e) {
@@ -131,15 +131,15 @@ Future<bool> processFile(String path) async {
 
   if (_opts.maxLineCount == null) {
     if (_opts.isSynch) {
-      file.readUtfAsStringSync(onBom: catBom, onUtfIo: catChunk);
+      file.readUtfAsStringSync(onBom: catBom, onRead: catChunk);
     } else {
-      await file.readUtfAsString(onBom: catBom, onUtfIo: catChunk);
+      await file.readUtfAsString(onBom: catBom, onRead: catChunk);
     }
   } else {
     if (_opts.isSynch) {
-      file.readUtfAsLinesSync(onBom: catBom, onLine: catLine);
+      file.readUtfAsLinesSync(onBom: catBom, onRead: catLine);
     } else {
-      await file.readUtfAsLines(onBom: catBom, onLine: catLine);
+      await file.readUtfAsLines(onBom: catBom, onRead: catLine);
     }
   }
 
@@ -151,15 +151,15 @@ Future<bool> processFile(String path) async {
 Future<bool> processStdin() async {
   if (_opts.maxLineCount == null) {
     if (_opts.isSynch) {
-      stdin.readUtfAsStringSync(onBom: catBom, onUtfIo: catChunk);
+      stdin.readUtfAsStringSync(onBom: catBom, onRead: catChunk);
     } else {
-      await stdin.readUtfAsString(onBom: catBom, onUtfIo: catChunk);
+      await stdin.readUtfAsString(onBom: catBom, onRead: catChunk);
     }
   } else {
     if (_opts.isSynch) {
-      stdin.readAsLinesSync(onBom: catBom, onLine: catLine);
+      stdin.readAsLinesSync(onBom: catBom, onRead: catLine);
     } else {
-      await stdin.readAsLines(onBom: catBom, onLine: catLine);
+      await stdin.readAsLines(onBom: catBom, onRead: catLine);
     }
   }
 
@@ -178,10 +178,10 @@ ${Options.appName} [OPTIONS] [ARGUMENTS]
 
 OPTIONS:
 
--?, -h[elp]      - this help screen
--l[ine] [MAXNUM] - cat line by line (default: cat chunks of text),
-                   limit to MAXNUM (default: no limit)
--s[ync[h]]       - cat synchronously
+-?, -h[elp]    - this help screen
+-l[ine] MAXNUM - cat line by line (default: cat chunks of text),
+                 limit to MAXNUM (use 0 for no limit)
+-s[ync[h]]     - cat synchronously
 
 ARGUMENTS:
 

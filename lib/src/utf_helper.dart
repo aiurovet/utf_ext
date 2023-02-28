@@ -7,19 +7,17 @@ import 'package:utf_ext/utf_ext.dart';
 /// Common helpers
 ///
 class UtfHelper {
-  /// Replace all occurrences of POSIX line breaks with the Windows ones
-  /// without affecting the existing Windows line breaks
+  /// Replace every LF with CR/LF without affecting the existing CR/LFs
   ///
   static String fromPosixLineBreaks(String input) => input
       .replaceAll(UtfConst.lineBreakWin, '\x01')
       .replaceAll(UtfConst.lineBreak, UtfConst.lineBreakWin)
       .replaceAll('\x01', UtfConst.lineBreakWin);
 
-
   /// Process chunk of data line by line
   ///
-  static int _processReadChunkAsLinesSync(
-      UtfIoParams params, UtfIoHandlerSync? onUtfIo, bool withPosixLineBreaks, bool isEnd) {
+  static int _processReadChunkAsLinesSync(UtfIoParams params,
+      UtfIoHandlerSync? onRead, bool withPosixLineBreaks, bool isEnd) {
     final chunk = params.current!;
     var length = chunk.length;
 
@@ -30,7 +28,7 @@ class UtfHelper {
     final pileup = params.pileup as List<String>?;
     var result = VisitResult.take;
 
-    for (var start = 0, end = 0; ; start = end + 1) {
+    for (var start = 0, end = 0;; start = end + 1) {
       end = chunk.indexOf(UtfConst.lineBreak, start);
 
       if (end < 0) {
@@ -52,8 +50,8 @@ class UtfHelper {
       final line = chunk.substring(start, endEx);
       params.current = line;
 
-      if (onUtfIo != null) {
-        result = onUtfIo(params);
+      if (onRead != null) {
+        result = onRead(params);
       }
 
       if (result.isTake) {
@@ -71,13 +69,13 @@ class UtfHelper {
   /// Process chunk of data as a single block for the read operation
   ///
   static int _processReadChunkAsStringSync(
-      UtfIoParams params, UtfIoHandlerSync? onUtfIo) {
+      UtfIoParams params, UtfIoHandlerSync? onRead) {
     final chunk = params.current!;
     final length = chunk.length;
 
     ++params.currentNo;
     params.current = chunk;
-    final result = (onUtfIo == null ? VisitResult.take : onUtfIo(params));
+    final result = (onRead == null ? VisitResult.take : onRead(params));
     final pileup = (result.isTake ? params.pileup : null);
 
     if ((pileup != null) && (length > 0)) {
@@ -87,21 +85,29 @@ class UtfHelper {
     return (result.isStop ? -1 : length);
   }
 
-  /// Read stdin content as UTF (blocking) and convert it to string.\
-  /// If [withPosixLineBreaks] is true, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one
+  /// Reads the content of a UTF source (blocking) and calls read handler.\
+  /// \
+  /// [asLines] - read as lines rather than in chunks\
+  /// [byteReader] - function called to perform an actual reading of bytes from some source\
+  /// [extra] - user-defined data\
+  /// [maxLength] - limits the size of a read buffer
+  /// [onBom] - a function called upon the read of the byte order mark\
+  /// [onRead] - a function called upon every chunk of text after being read\
+  /// [pileup] - if not null, accumulates the whole content under that\
+  /// [withPosixLineBreaks] - if true (default) replace each CR/LF with LF
+  /// \
+  /// Returns [pileup] if not null or an empty list otherwise
   ///
   static void _readAllSync(String id,
       {bool asLines = false,
+      ByteIoHandlerSync? byteReader,
       dynamic extra,
       int? maxLength,
       UtfBomHandler? onBom,
-      ByteIoHandlerSync? onByteIo,
-      UtfIoHandlerSync? onUtfIo,
+      UtfIoHandlerSync? onRead,
       dynamic pileup,
       bool withPosixLineBreaks = true}) {
-    final params =
-        UtfIoParams(extra: extra, isSyncCall: true, pileup: pileup);
+    final params = UtfIoParams(extra: extra, isSyncCall: true, pileup: pileup);
     pileup?.clear();
 
     maxLength ??= UtfConfig.maxBufferLength;
@@ -110,22 +116,22 @@ class UtfHelper {
     var chunk = '';
     final decoder = UtfDecoder(id, hasSink: false, onBom: onBom);
 
-    for (var curLength = 0; ; curLength = 0) {
-      if (onByteIo != null) {
-        curLength = onByteIo(bytes);
+    for (var curLength = 0;; curLength = 0) {
+      if (byteReader != null) {
+        curLength = byteReader(bytes);
 
         if (curLength == 0) {
           if (asLines && chunk.isNotEmpty) {
-            _processReadChunkAsLinesSync(params, onUtfIo, withPosixLineBreaks, asLines);
+            _processReadChunkAsLinesSync(
+                params, onRead, withPosixLineBreaks, asLines);
           }
           break;
         }
 
         final next = decoder.convert(bytes, 0, curLength);
 
-        params.current = chunk + (withPosixLineBreaks
-            ? toPosixLineBreaks(next)
-            : next);
+        params.current =
+            chunk + (withPosixLineBreaks ? toPosixLineBreaks(next) : next);
       } else if (chunk.isEmpty) {
         break;
       } else {
@@ -135,90 +141,115 @@ class UtfHelper {
       var end = 0;
 
       if (asLines) {
-        end = _processReadChunkAsLinesSync(params, onUtfIo, withPosixLineBreaks, false);
+        end = _processReadChunkAsLinesSync(
+            params, onRead, withPosixLineBreaks, false);
       } else {
-        end = _processReadChunkAsStringSync(params, onUtfIo);
+        end = _processReadChunkAsStringSync(params, onRead);
       }
 
       if (end < 0) {
         break;
       }
-  
+
       if (end > 0) {
         chunk = params.current!.substring(end);
       }
     }
   }
 
-  /// Read stdin content as UTF (blocking) and convert it to string.\
-  /// If [withPosixLineBreaks] is true, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one
+  /// Reads the content of a UTF source (blocking) as a sequence of lines and calls read handler.\
+  /// \
+  /// [byteReader] - function called to perform an actual read of bytes from some source\
+  /// [extra] - user-defined data\
+  /// [maxLength] - limits the size of a read buffer
+  /// [onBom] - a function called upon the read of the byte order mark\
+  /// [onRead] - a function called upon every chunk of text after being read\
+  /// [pileup] - if not null, accumulates the whole content under that\
+  /// [withPosixLineBreaks] - if true (default) replace each CR/LF with LF
+  /// \
+  /// Returns [pileup] if not null or an empty list otherwise
   ///
   static List<String> readAsLinesSync(String id,
-          {dynamic extra,
-          int? maxLength,
-          UtfBomHandler? onBom,
-          ByteIoHandlerSync? onByteIo,
-          UtfIoHandlerSync? onUtfIo,
-          List<String>? pileup,
-          bool withPosixLineBreaks = true}) {
-      _readAllSync(id,
-          asLines: true,
-          extra: extra,
-          maxLength: maxLength,
-          onBom: onBom,
-          onByteIo: onByteIo,
-          onUtfIo: onUtfIo,
-          pileup: pileup,
-          withPosixLineBreaks: withPosixLineBreaks);
+      {ByteIoHandlerSync? byteReader,
+      dynamic extra,
+      int? maxLength,
+      UtfBomHandler? onBom,
+      UtfIoHandlerSync? onRead,
+      List<String>? pileup,
+      bool withPosixLineBreaks = true}) {
+    _readAllSync(id,
+        asLines: true,
+        extra: extra,
+        maxLength: maxLength,
+        onBom: onBom,
+        byteReader: byteReader,
+        onRead: onRead,
+        pileup: pileup,
+        withPosixLineBreaks: withPosixLineBreaks);
 
-      return pileup ?? <String>[];
+    return pileup ?? <String>[];
   }
 
-  /// Read stdin content as UTF (blocking) and convert it to string.\
-  /// If [withPosixLineBreaks] is true, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one
+  /// Reads the content of a UTF source (blocking) as chunks of text and calls read handler.\
+  /// \
+  /// [byteReader] - function called to perform an actual reading of bytes from some source\
+  /// [extra] - user-defined data\
+  /// [maxLength] - limits the size of a read buffer
+  /// [onBom] - a function called upon the read of the byte order mark\
+  /// [onRead] - a function called upon every chunk of text after being read\
+  /// [pileup] - if not null, accumulates the whole content under that\
+  /// [withPosixLineBreaks] - if true (default) replace each CR/LF with LF
+  /// \
+  /// Returns [pileup] if not null or an empty list otherwise
   ///
   static String readAsStringSync(String id,
-          {dynamic extra,
-          int? maxLength,
-          UtfBomHandler? onBom,
-          ByteIoHandlerSync? onByteIo,
-          UtfIoHandlerSync? onUtfIo,
-          StringBuffer? pileup,
-          bool withPosixLineBreaks = true}) {
-      _readAllSync(id,
-          asLines: false,
-          extra: extra,
-          maxLength: maxLength,
-          onBom: onBom,
-          onByteIo: onByteIo,
-          onUtfIo: onUtfIo,
-          pileup: pileup,
-          withPosixLineBreaks: withPosixLineBreaks);
+      {ByteIoHandlerSync? byteReader,
+      dynamic extra,
+      int? maxLength,
+      UtfBomHandler? onBom,
+      UtfIoHandlerSync? onRead,
+      StringBuffer? pileup,
+      bool withPosixLineBreaks = true}) {
+    _readAllSync(id,
+        asLines: false,
+        extra: extra,
+        maxLength: maxLength,
+        onBom: onBom,
+        byteReader: byteReader,
+        onRead: onRead,
+        pileup: pileup,
+        withPosixLineBreaks: withPosixLineBreaks);
 
-      return pileup?.toString() ?? '';
+    return pileup?.toString() ?? '';
   }
 
-  /// Read stdin content as UTF (blocking) and convert it to string.\
-  /// If [withPosixLineBreaks] is true, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one
+  /// Converts a sequence of strings into bytes and saves those as a UTF source (blocking)\
+  /// \
+  /// [lines] - list of strings to save
+  /// [byteWriter] - function called to perform an actual writing of bytes from some source\
+  /// [extra] - user-defined data\
+  /// [maxLength] - limits the size of a read buffer
+  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [type] - UTF type\
+  /// [withBom] - if true (default if [type] is defined) byte order mark is written
+  /// [withPosixLineBreaks] - if true (default) replace each CR/LF with LF
+  /// \
+  /// Returns [pileup] if not null or an empty list otherwise
   ///
-  static void writeAsLinesSync(String id,
-          List<String> lines,
-          {dynamic extra,
-          int? maxLength,
-          ByteIoHandlerSync? onByteIo,
-          UtfIoHandlerSync? onUtfIo,
-          UtfType type = UtfType.none,
-          bool withBom = true,
-          bool withPosixLineBreaks = true}) {
+  static void writeAsLinesSync(String id, List<String> lines,
+      {ByteIoHandlerSync? byteWriter,
+      dynamic extra,
+      int? maxLength,
+      UtfIoHandlerSync? onWrite,
+      UtfType type = UtfType.none,
+      bool withBom = true,
+      bool withPosixLineBreaks = true}) {
     var chunk = '';
 
-    final encoder = UtfEncoder(id, hasSink: false, type: type, withBom: withBom);
+    final encoder =
+        UtfEncoder(id, hasSink: false, type: type, withBom: withBom);
 
-    final params =
-        UtfIoParams(extra: extra, isSyncCall: true, pileup: lines);
+    final params = UtfIoParams(extra: extra, isSyncCall: true, pileup: lines);
 
     for (var i = 0, n = lines.length; i < n; i++) {
       if (i > 0) {
@@ -228,8 +259,12 @@ class UtfHelper {
       params.current = lines[i];
       chunk += params.current!;
 
-      if (writeChunkSync(encoder, chunk, onByteIo: onByteIo, onUtfIo: onUtfIo,
-            params: params, withPosixLineBreaks: withPosixLineBreaks).isStop) {
+      if (writeChunkSync(encoder, chunk,
+              byteWriter: byteWriter,
+              onWrite: onWrite,
+              params: params,
+              withPosixLineBreaks: withPosixLineBreaks)
+          .isStop) {
         break;
       }
     }
@@ -239,16 +274,16 @@ class UtfHelper {
   /// If [withPosixLineBreaks] is true, replace all occurrences of
   /// Windows- and Mac-specific line break with the UNIX one
   ///
-  static void writeAsStringSync(String id,
-          String content,
-          {dynamic extra,
-          int? maxLength,
-          ByteIoHandlerSync? onByteIo,
-          UtfIoHandlerSync? onUtfIo,
-          UtfType type = UtfType.none,
-          bool withBom = true,
-          bool withPosixLineBreaks = true}) {
-    final encoder = UtfEncoder(id, hasSink: false, type: type, withBom: withBom);
+  static void writeAsStringSync(String id, String content,
+      {ByteIoHandlerSync? byteWriter,
+      dynamic extra,
+      int? maxLength,
+      UtfIoHandlerSync? onWrite,
+      UtfType type = UtfType.none,
+      bool withBom = true,
+      bool withPosixLineBreaks = true}) {
+    final encoder =
+        UtfEncoder(id, hasSink: false, type: type, withBom: withBom);
     final fullLength = content.length;
 
     if (maxLength == null) {
@@ -261,8 +296,7 @@ class UtfHelper {
       maxLength = fullLength;
     }
 
-    final params =
-        UtfIoParams(extra: extra, isSyncCall: true, pileup: content);
+    final params = UtfIoParams(extra: extra, isSyncCall: true, pileup: content);
 
     var chunk = '';
     var chunkLength = maxLength;
@@ -277,8 +311,12 @@ class UtfHelper {
         chunkLength = maxLength;
       }
 
-      if (writeChunkSync(encoder, chunk, onByteIo: onByteIo, onUtfIo: onUtfIo,
-            params: params, withPosixLineBreaks: withPosixLineBreaks).isStop) {
+      if (writeChunkSync(encoder, chunk,
+              byteWriter: byteWriter,
+              onWrite: onWrite,
+              params: params,
+              withPosixLineBreaks: withPosixLineBreaks)
+          .isStop) {
         break;
       }
     } while (chunkLength == maxLength);
@@ -288,11 +326,9 @@ class UtfHelper {
   /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
   /// the Windows-specific ones
   ///
-  static VisitResult writeChunkSync(
-      UtfEncoder encoder,
-      String chunk,
-      {ByteIoHandlerSync? onByteIo,
-      UtfIoHandlerSync? onUtfIo,
+  static VisitResult writeChunkSync(UtfEncoder encoder, String chunk,
+      {ByteIoHandlerSync? byteWriter,
+      UtfIoHandlerSync? onWrite,
       UtfIoParams? params,
       bool withPosixLineBreaks = true}) {
     var result = VisitResult.take;
@@ -305,8 +341,8 @@ class UtfHelper {
 
     params?.current = chunk;
 
-    if ((onUtfIo != null) && (params != null)) {
-      result = onUtfIo(params);
+    if ((onWrite != null) && (params != null)) {
+      result = onWrite(params);
     }
 
     if (result.isTake) {
@@ -316,18 +352,17 @@ class UtfHelper {
         chunk = fromPosixLineBreaks(chunk);
       }
 
-      if (onByteIo != null) {
-        onByteIo(encoder.convert(chunk));
+      if (byteWriter != null) {
+        byteWriter(encoder.convert(chunk));
       }
     }
 
     return result;
   }
 
-  /// Replace all occurrences of Windows and old Mac specific
-  /// line breaks with the POSIX ones
+  /// Replaces every CR/LF and a standalone CR with LF
   ///
   static String toPosixLineBreaks(String input) => input
-    .replaceAll(UtfConst.lineBreakWin, UtfConst.lineBreak)
-    .replaceAll(UtfConst.lineBreakMac, UtfConst.lineBreak);
+      .replaceAll(UtfConst.lineBreakWin, UtfConst.lineBreak)
+      .replaceAll(UtfConst.lineBreakMac, UtfConst.lineBreak);
 }

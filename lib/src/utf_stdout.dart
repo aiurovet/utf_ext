@@ -18,7 +18,7 @@ extension UtfStdout on Stdout {
 
   /// Low-level output - the actual printing
   ///
-  int _onByteIo(List<int> bytes, [int start = 0, int? end]) {
+  int _byteWriter(List<int> bytes, [int start = 0, int? end]) {
     final length = (end ?? bytes.length) - start;
 
     if (length <= 0) {
@@ -34,124 +34,161 @@ extension UtfStdout on Stdout {
     return length;
   }
 
-  /// Convert a list of strings to a sequence of UTF bytes and write those to [sink] (non-blocking).\
-  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
-  /// the Windows-specific ones
+  /// Converts a sequence of strings into bytes and prints those (non-blocking)\
+  /// \
+  /// [lines] - the whole content broken into lines with no line break
+  /// [extra] - user-defined data\
+  /// [mode] - write (default) or append\
+  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [type] - UTF type
+  /// [withBom] - if true (default if [type] is defined) byte order mark is printed
+  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
   Future<void> printUtfAsLines(List<String> lines,
           {dynamic extra,
           FileMode mode = FileMode.write,
-          UtfIoHandler? onUtfIo,
+          UtfIoHandler? onWrite,
           UtfType type = UtfType.none,
           bool? withBom,
           bool withPosixLineBreaks = true}) async =>
-    await writeUtfAsLines(name, lines,
+      await writeUtfAsLines(name, lines,
           extra: extra,
           type: type,
-          onUtfIo: onUtfIo,
+          onWrite: onWrite,
           withBom: withBom,
           withPosixLineBreaks: withPosixLineBreaks);
 
-  /// Convert a list of strings to a sequence of UTF bytes and write those to [sink] (non-blocking).\
-  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
-  /// the Windows-specific ones
+  /// Converts a sequence of strings into bytes and prints those (blocking)\
+  /// \
+  /// [lines] - the whole content broken into lines with no line break
+  /// [extra] - user-defined data\
+  /// [mode] - write (default) or append\
+  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [type] - UTF type
+  /// [withBom] - if true (default if [type] is defined) byte order mark is printed
+  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
   void printUtfAsLinesSync(List<String> lines,
           {dynamic extra,
           FileMode mode = FileMode.write,
-          UtfIoHandlerSync? onUtfIo,
+          UtfIoHandlerSync? onWrite,
           UtfType type = UtfType.none,
           bool? withBom,
           bool withPosixLineBreaks = true}) =>
       UtfHelper.writeAsLinesSync(name, lines,
+          byteWriter: _byteWriter,
           extra: extra,
           type: type,
-          onByteIo: _onByteIo,
-          onUtfIo: onUtfIo,
+          onWrite: onWrite,
           withPosixLineBreaks: withPosixLineBreaks);
 
-  /// Read the UTF file content (non-blocking) and and convert it to string.\
-  /// If [withPosixLineBreaks] is true, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one
+  /// Converts a strings into bytes and prints those (non-blocking)\
+  /// \
+  /// [content] - the whole text to print
+  /// [extra] - user-defined data\
+  /// [mode] - write (default) or append\
+  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [type] - UTF type
+  /// [withBom] - if true (default if [type] is defined) byte order mark is printed
+  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
   Future<void> printUtfAsString(String content,
           {dynamic extra,
           FileMode mode = FileMode.write,
-          UtfIoHandler? onUtfIo,
-          UtfType type = UtfType.utf8,
+          UtfIoHandler? onWrite,
+          UtfType type = UtfType.none,
           bool? withBom,
           bool? withPosixLineBreaks = true}) async =>
       await writeUtfAsString(name, content,
           extra: extra,
-          onUtfIo: onUtfIo,
+          onWrite: onWrite,
           type: type,
           withBom: withBom,
           withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
 
-  /// Read the UTF file content (blocking) and and convert it to string.\
-  /// If [withPosixLineBreaks] is true, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one
+  /// Converts a strings into bytes and prints those (blocking)\
+  /// \
+  /// [content] - the whole text to print
+  /// [extra] - user-defined data\
+  /// [mode] - write (default) or append\
+  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [type] - UTF type
+  /// [withBom] - if true (default if [type] is defined) byte order mark is printed
+  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
   void printUtfAsStringSync(String content,
           {dynamic extra,
           FileMode mode = FileMode.write,
-          UtfIoHandlerSync? onUtfIo,
-          UtfType type = UtfType.utf8,
+          UtfIoHandlerSync? onWrite,
+          UtfType type = UtfType.none,
           bool? withBom,
           bool? withPosixLineBreaks = true}) =>
       UtfHelper.writeAsStringSync(name, content,
           extra: extra,
-          onUtfIo: onUtfIo,
+          onWrite: onWrite,
           type: type,
           withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
 
-  /// Read the UTF file content (blocking) and and convert it to string.\
-  /// If [withPosixLineBreaks] is true, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one
+  /// Converts a chunk of text into bytes and prints those (non-blocking), can be called sequentially\
+  /// \
+  /// [encoder] - UTF encoder
+  /// [chunk] - chunk of text to print
+  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [params] - current chunk info holder
+  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
-  FutureOr<VisitResult> printUtfChunk(
-          UtfEncoder encoder,
-          {UtfIoHandler? onUtfIo,
-          UtfIoParams? params,
-          bool? withPosixLineBreaks = true}) async {
+  FutureOr<VisitResult> printUtfChunk(UtfEncoder encoder, String chunk,
+      {UtfIoHandler? onWrite,
+      UtfIoParams? params,
+      bool? withPosixLineBreaks = true}) async {
     var result = VisitResult.take;
 
     if (params == null) {
       return result;
     }
 
-    if (onUtfIo != null) {
-      result = (params.isSyncCall ? onUtfIo(params) : await onUtfIo(params)) as VisitResult;
+    ++params.currentNo;
+    params.current = chunk;
+
+    if (onWrite != null) {
+      result = (params.isSyncCall ? onWrite(params) : await onWrite(params))
+          as VisitResult;
     }
 
     if (!result.isSkip) {
-      _onByteIo(encoder.convert(params.current!));
+      _byteWriter(encoder.convert(params.current!));
     }
 
     return result;
   }
 
-  /// Read the UTF file content (blocking) and and convert it to string.\
-  /// If [withPosixLineBreaks] is true, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one
+  /// Converts a chunk of text into bytes and prints those (non-blocking), can be called sequentially\
+  /// \
+  /// [encoder] - UTF encoder
+  /// [chunk] - chunk of text to print
+  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [params] - current chunk info holder
+  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
-  VisitResult printUtfChunkSync(
-          UtfEncoder encoder,
-          {UtfIoHandlerSync? onUtfIo,
-          UtfIoParams? params,
-          bool? withPosixLineBreaks = true}) {
+  VisitResult printUtfChunkSync(UtfEncoder encoder, String chunk,
+      {UtfIoHandlerSync? onWrite,
+      UtfIoParams? params,
+      bool? withPosixLineBreaks = true}) {
     var result = VisitResult.take;
 
     if (params == null) {
       return result;
     }
 
-    if (onUtfIo != null) {
-      result = onUtfIo(params);
+    ++params.currentNo;
+    params.current = chunk;
+
+    if (onWrite != null) {
+      result = onWrite(params);
     }
 
     if (!result.isSkip) {
-      _onByteIo(encoder.convert(params.current!));
+      _byteWriter(encoder.convert(params.current!));
     }
 
     return result;

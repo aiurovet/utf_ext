@@ -85,8 +85,9 @@ enum UtfType {
   /// Get maximum number of bytes representing a character
   ///
   int getMaxCharLength(bool forWrite) {
-    switch (
-        this == none ? (forWrite ? UtfConfig.fallbackForWrite : UtfConfig.fallbackForRead) : this) {
+    switch (this == none
+        ? (forWrite ? UtfConfig.fallbackForWrite : UtfConfig.fallbackForRead)
+        : this) {
       case UtfType.utf16be:
       case UtfType.utf16le:
         return 2;
@@ -98,8 +99,9 @@ enum UtfType {
   /// Get minimum number of bytes representing a character
   ///
   int getMinCharLength(bool forWrite) {
-    switch (
-        this == none ? (forWrite ? UtfConfig.fallbackForWrite : UtfConfig.fallbackForRead) : this) {
+    switch (this == none
+        ? (forWrite ? UtfConfig.fallbackForWrite : UtfConfig.fallbackForRead)
+        : this) {
       case utf16be:
       case utf16le:
         return 2;
@@ -114,8 +116,9 @@ enum UtfType {
   /// Check the endianness
   ///
   bool isBigEndian(bool forWrite) {
-    switch (
-        this == none ? (forWrite ? UtfConfig.fallbackForWrite : UtfConfig.fallbackForRead) : this) {
+    switch (this == none
+        ? (forWrite ? UtfConfig.fallbackForWrite : UtfConfig.fallbackForRead)
+        : this) {
       case utf16be:
       case utf32be:
         return true;
@@ -127,8 +130,9 @@ enum UtfType {
   /// Flag separating none/UTF-8 and UTF-16/32
   ///
   bool isFixedLength(bool forWrite) {
-    switch (
-        this == none ? (forWrite ? UtfConfig.fallbackForWrite : UtfConfig.fallbackForRead) : this) {
+    switch (this == none
+        ? (forWrite ? UtfConfig.fallbackForWrite : UtfConfig.fallbackForRead)
+        : this) {
       case none:
       case utf8:
         return false;
@@ -140,8 +144,9 @@ enum UtfType {
   /// Check whether this is a 2-byte Unicode
   ///
   bool isFixedLengthShort(bool forWrite) {
-    switch (
-        this == none ? (forWrite ? UtfConfig.fallbackForWrite : UtfConfig.fallbackForRead) : this) {
+    switch (this == none
+        ? (forWrite ? UtfConfig.fallbackForWrite : UtfConfig.fallbackForRead)
+        : this) {
       case utf16be:
       case utf16le:
         return true;
@@ -173,8 +178,9 @@ enum UtfType {
 
   /// Convert type to BOM
   ///
-  UtfType toFinal(bool forWrite) =>
-      (this == none ? (forWrite ? UtfConfig.fallbackForWrite : UtfConfig.fallbackForRead) : this);
+  UtfType toFinal(bool forWrite) => (this == none
+      ? (forWrite ? UtfConfig.fallbackForWrite : UtfConfig.fallbackForRead)
+      : this);
 
   /// Serialize
   ///

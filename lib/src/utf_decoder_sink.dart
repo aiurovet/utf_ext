@@ -56,9 +56,9 @@ class UtfDecoderSink extends ByteConversionSinkBase {
   ///
   UtfBomHandler? _onBom;
 
-  /// Associated low-level sink
+  /// Associated conversion sink
   ///
-  StringConversionSink? _sink;
+  StringConversionSink? _strConvSink;
 
   /// Kind of UTF
   ///
@@ -70,21 +70,21 @@ class UtfDecoderSink extends ByteConversionSinkBase {
   UtfDecoderSink(
       {this.id,
       UtfBomHandler? onBom,
-      StringConversionSink? sink,
+      StringConversionSink? strConvSink,
       UtfType type = UtfType.none}) {
     _onBom = onBom;
-    _init(sink, type);
+    _init(strConvSink, type);
   }
 
   /// Implementation of [close]
   ///
   @override
-  void close() => _sink?.close();
+  void close() => _strConvSink?.close();
 
   /// Implementation of [add]
   ///
   @override
-  void add(List<int> chunk) => _sink?.add(convert(chunk));
+  void add(List<int> chunk) => _strConvSink?.add(convert(chunk));
 
   /// Implementation of [addSlice]
   ///
@@ -248,13 +248,14 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     return String.fromCharCodes(output);
   }
 
-  /// Initializer, called twice: in the beginning and once BOM found
+  /// Initializer, called twice: in the constructor and once BOM is found
   ///
-  FutureOr<void> _init(StringConversionSink? sink, UtfType finalType) async {
-    final isBomDone = ((sink == null) || (sink == _sink));
+  FutureOr<void> _init(
+      StringConversionSink? strConvSink, UtfType finalType) async {
+    final isBomDone = ((strConvSink == null) || (strConvSink == _strConvSink));
 
     if (!isBomDone) {
-      _sink = sink;
+      _strConvSink = strConvSink;
     }
 
     _bomLength = finalType.getBomLength(false);

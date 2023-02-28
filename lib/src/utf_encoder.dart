@@ -35,7 +35,8 @@ class UtfEncoder extends Converter<String, List<int>> {
   /// Implementation of [convert]
   ///
   @override
-  Uint8List convert(String input, [int start = 0, int? end]) => _sink?.convert(input, start, end) ?? UtfType.emptyBom;
+  Uint8List convert(String input, [int start = 0, int? end]) =>
+      _sink?.convert(input, start, end) ?? UtfType.emptyBom;
 
   /// Initializer
   ///
@@ -64,8 +65,8 @@ class UtfEncoder extends Converter<String, List<int>> {
       byteSink = ByteConversionSink.from(sink);
     }
 
-    _sink =
-        UtfEncoderSink(id: id, sink: byteSink, type: _type, withBom: _withBom);
+    _sink = UtfEncoderSink(
+        id: id, byteConvSink: byteSink, type: _type, withBom: _withBom);
 
     return _sink!;
   }

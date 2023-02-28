@@ -14,7 +14,8 @@ class UtfConfig {
   ///
   static var fallbackForWrite = UtfType.utf8;
 
-  /// Maximum size of a buffer, can be set in main()
+  /// Maximum size of a buffer for synchronous (blocking) operations\
+  /// Can be set in `main()`
   ///
   static var maxBufferLength = 16 * 1024;
 }

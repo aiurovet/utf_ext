@@ -41,9 +41,9 @@ class UtfEncoderSink extends StringConversionSinkBase {
   int get maxCharLength => _maxCharLength;
   int _maxCharLength = 0;
 
-  /// Associated sink (actual encoder)
+  /// Associated conversion sink
   ///
-  ByteConversionSink? _sink;
+  ByteConversionSink? _byteConvSink;
 
   /// Kind of UTF
   ///
@@ -57,19 +57,22 @@ class UtfEncoderSink extends StringConversionSinkBase {
   /// Default constructor
   ///
   UtfEncoderSink(
-      {this.id, ByteConversionSink? sink, UtfType type = UtfType.none, bool withBom = true}) {
-    _init(sink, type, withBom);
+      {this.id,
+      ByteConversionSink? byteConvSink,
+      UtfType type = UtfType.none,
+      bool withBom = true}) {
+    _init(byteConvSink, type, withBom);
   }
 
   /// Implementation of [close]
   ///
   @override
-  void close() => _sink?.close();
+  void close() => _byteConvSink?.close();
 
   /// Implementation of [add]
   ///
   @override
-  void add(String chunk) => _sink?.add(convert(chunk));
+  void add(String chunk) => _byteConvSink?.add(convert(chunk));
 
   /// Implementation of [addSlice]
   ///
@@ -172,13 +175,15 @@ class UtfEncoderSink extends StringConversionSinkBase {
 
   /// Initializer, called twice: in the beginning and once BOM found
   ///
-  FutureOr<void> _init(ByteConversionSink? sink, UtfType finalType, bool withBom) async {
-    if (sink != null) {
-      _sink = sink;
+  FutureOr<void> _init(
+      ByteConversionSink? byteConvSink, UtfType finalType, bool withBom) async {
+    if (byteConvSink != null) {
+      _byteConvSink = byteConvSink;
     }
 
     _bomLength = finalType.getBomLength(true);
-    _type = (finalType == UtfType.none ? UtfConfig.fallbackForWrite : finalType);
+    _type =
+        (finalType == UtfType.none ? UtfConfig.fallbackForWrite : finalType);
     _withBom = withBom;
 
     _isBigEndianData = _type.isBigEndian(true);

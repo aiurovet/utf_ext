@@ -46,7 +46,7 @@ class Options {
 
   var toType = UtfConfig.fallbackForWrite;
 
-  /// Primitive command-line parser
+  /// Simple command-line parser using `parse_args` package
   ///
   void parse(List<String> args) {
     var optDefs = '''
@@ -70,10 +70,10 @@ class Options {
   }
 }
 
-/// Data for writing the output in chunks upon each read
+/// Helper class for writing the output in chunks upon each read
 ///
 class OutInfo {
-  /// Target sink
+  /// Output sink
   ///
   final IOSink sink;
 
@@ -96,26 +96,6 @@ class OutInfo {
   ///
   void writeUtfChunkSync(String chunk) =>
       sink.writeUtfChunkSync(encoder, chunk);
-}
-
-/// Entry point
-///
-Future<void> main(List<String> args) async {
-  try {
-    _opts.parse(args);
-
-    if (_opts.paths.isEmpty) {
-      await processStdin();
-    } else {
-      for (var path in _opts.paths) {
-        await processFile(path);
-      }
-    }
-  } on Error catch (e) {
-    onFailure(e);
-  } on Exception catch (e) {
-    onFailure(e);
-  }
 }
 
 /// Write any chunk of text to the output sink (non-blocing)
@@ -160,6 +140,26 @@ VisitResult convLineSync(UtfIoParams params) {
   return (canStop ? VisitResult.takeAndStop : VisitResult.take);
 }
 
+/// Entry point
+///
+Future<void> main(List<String> args) async {
+  try {
+    _opts.parse(args);
+
+    if (_opts.paths.isEmpty) {
+      await processStdin();
+    } else {
+      for (var path in _opts.paths) {
+        await processFile(path);
+      }
+    }
+  } on Error catch (e) {
+    onFailure(e);
+  } on Exception catch (e) {
+    onFailure(e);
+  }
+}
+
 /// Error handler
 ///
 Never onFailure(dynamic e) {
@@ -186,15 +186,15 @@ Future<void> processFile(String path) async {
 
   if (maxLineCount == null) {
     if (isSync) {
-      inpFile.readUtfAsStringSync(onUtfIo: convChunkSync, extra: outInfo);
+      inpFile.readUtfAsStringSync(onRead: convChunkSync, extra: outInfo);
     } else {
-      await inpFile.readUtfAsString(onUtfIo: convChunk, extra: outInfo);
+      await inpFile.readUtfAsString(onRead: convChunk, extra: outInfo);
     }
   } else {
     if (isSync) {
-      inpFile.readUtfAsLinesSync(onLine: convLineSync, extra: outInfo);
+      inpFile.readUtfAsLinesSync(onRead: convLineSync, extra: outInfo);
     } else {
-      await inpFile.readUtfAsLines(onLine: convLine, extra: outInfo);
+      await inpFile.readUtfAsLines(onRead: convLine, extra: outInfo);
     }
   }
 }
@@ -210,15 +210,15 @@ Future<void> processStdin() async {
 
   if (maxLineCount == null) {
     if (isSync) {
-      stdin.readUtfAsStringSync(onUtfIo: convChunkSync, extra: outInfo);
+      stdin.readUtfAsStringSync(onRead: convChunkSync, extra: outInfo);
     } else {
-      await stdin.readUtfAsString(onUtfIo: convChunk, extra: outInfo);
+      await stdin.readUtfAsString(onRead: convChunk, extra: outInfo);
     }
   } else {
     if (isSync) {
-      stdin.readAsLinesSync(onLine: convLineSync, extra: outInfo);
+      stdin.readAsLinesSync(onRead: convLineSync, extra: outInfo);
     } else {
-      await stdin.readAsLines(onLine: convLine, extra: outInfo);
+      await stdin.readAsLines(onRead: convLine, extra: outInfo);
     }
   }
 }
