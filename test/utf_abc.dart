@@ -4,7 +4,7 @@ import 'package:utf_ext/utf_ext.dart';
 
 /// UTF test data
 ///
-class Utf {
+class UtfAbc {
   /// Empty bytes
   ///
   static final bytesEmpty = Uint8List.fromList(<int>[]);
@@ -266,7 +266,7 @@ class Utf {
   ///
   static void dumpAsHex(UtfType type) {
     final complexBytes =
-        UtfEncoderSink(id: null, type: type, withBom: true).convert(complexStr);
+        UtfEncoderSink(null, type: type, withBom: true).convert(complexStr);
     print(complexBytes
         .map((x) =>
             '0x${(x < 0x10 ? '0' : '')}${x.toRadixString(0x10).toUpperCase()}, ')

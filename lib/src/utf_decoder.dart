@@ -33,8 +33,19 @@ class UtfDecoder extends Converter<List<int>, String> {
   /// Implementation of [convert]
   ///
   @override
-  String convert(List<int> input, [int start = 0, int? end]) =>
-      _sink?.convert(input, start, end) ?? '';
+  String convert(List<int> input, [int start = 0, int? end]) {
+    if (_sink == null) {
+      return '';
+    }
+
+    final result = _sink!.convert(input, start, end);
+
+    if (start == 0) {
+      _type = _sink!.type;
+    }
+
+    return result;
+  }
 
   /// Initializer
   ///
@@ -61,7 +72,7 @@ class UtfDecoder extends Converter<List<int>, String> {
     }
 
     _sink = UtfDecoderSink(
-        id: id, onBom: _onBom, strConvSink: stringSink, type: _type);
+        id, onBom: _onBom, strConvSink: stringSink, type: _type);
 
     return _sink!;
   }

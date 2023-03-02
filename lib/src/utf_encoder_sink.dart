@@ -57,8 +57,8 @@ class UtfEncoderSink extends StringConversionSinkBase {
   /// Default constructor
   ///
   UtfEncoderSink(
-      {this.id,
-      ByteConversionSink? byteConvSink,
+      this.id,
+      {ByteConversionSink? byteConvSink,
       UtfType type = UtfType.none,
       bool withBom = true}) {
     _init(byteConvSink, type, withBom);

@@ -16,7 +16,7 @@ class UtfException implements Exception {
 
   /// Identifier of the entity which threw the exception (can be file path)
   ///
-  late final String callerId;
+  late final String inCaller;
 
   /// Ending of successfully converted text
   ///
@@ -28,7 +28,7 @@ class UtfException implements Exception {
 
   /// Type of UTF
   ///
-  late final UtfType type;
+  final UtfType type;
 
   /// Explanation prefix
   ///
@@ -37,10 +37,9 @@ class UtfException implements Exception {
   /// Default constructor
   ///
   UtfException(
-      String? callerId, UtfType? type, this.goodEnding, this.goodLength) {
+      String? callerId, this.type, this.goodEnding, this.goodLength) {
     callerId = callerId?.trim() ?? '';
-    this.callerId = (callerId.isEmpty ? '' : ' in $callerId');
-    this.type = type ?? UtfType.utf8;
+    inCaller = (callerId.isEmpty ? '' : ' in $callerId');
   }
 
   /// Take the last minimum piece of successfully converted text
@@ -73,5 +72,5 @@ class UtfException implements Exception {
   /// Serializer
   ///
   @override
-  String toString() => 'Error$callerId: $description';
+  String toString() => 'Error$inCaller: $description';
 }

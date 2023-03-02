@@ -66,7 +66,7 @@ class UtfEncoder extends Converter<String, List<int>> {
     }
 
     _sink = UtfEncoderSink(
-        id: id, byteConvSink: byteSink, type: _type, withBom: _withBom);
+        id, byteConvSink: byteSink, type: _type, withBom: _withBom);
 
     return _sink!;
   }

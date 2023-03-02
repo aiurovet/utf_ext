@@ -68,8 +68,8 @@ class UtfDecoderSink extends ByteConversionSinkBase {
   /// Default constructor
   ///
   UtfDecoderSink(
-      {this.id,
-      UtfBomHandler? onBom,
+      this.id,
+      {UtfBomHandler? onBom,
       StringConversionSink? strConvSink,
       UtfType type = UtfType.none}) {
     _onBom = onBom;
