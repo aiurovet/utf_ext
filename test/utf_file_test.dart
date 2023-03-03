@@ -1,4 +1,3 @@
-import 'package:file/file.dart';
 import 'package:file_ext/file_ext.dart';
 import 'package:loop_visitor/loop_visitor.dart';
 import 'package:test/test.dart';
@@ -6,13 +5,6 @@ import 'package:utf_ext/src/utf_file.dart';
 import 'package:utf_ext/src/utf_type.dart';
 
 import 'utf_abc.dart';
-
-/// Setup
-///
-Future<void> init(File file, [String? content]) async {
-  await file.create(recursive: true);
-  await file.writeUtfAsString(content ?? 'x');
-}
 
 /// A suite of tests for UtfBom
 ///
@@ -26,7 +18,7 @@ void main() {
     final lines = <String>[];
 
     group('Event handler - $styleName -', () {
-      setUp(() async => init(file));
+      setUp(() async => await UtfAbc.init(file));
 
       test('onRead - bulk', () async {
         var wasCalled = false;
@@ -70,7 +62,7 @@ void main() {
       });
     });
     group('Write/Read bulk - $styleName -', () {
-      setUp(() async => init(file));
+      setUp(() async => await UtfAbc.init(file));
 
       test('for each type', () async {
         await UtfAbc.forEachType(file, (type, file) async {
@@ -80,7 +72,7 @@ void main() {
       });
     });
     group('Write/Read - bulk - sync - $styleName -', () {
-      setUp(() async => init(file));
+      setUp(() async => await UtfAbc.init(file));
 
       test('for each type', () {
         UtfAbc.forEachTypeSync(file, (type, file) async {
@@ -90,7 +82,7 @@ void main() {
       });
     });
     group('Write/Read line - $styleName -', () {
-      setUp(() async => init(file));
+      setUp(() async => await UtfAbc.init(file));
 
       test('for each type', () async {
         await UtfAbc.forEachType(file, (type, file) async {
@@ -100,7 +92,7 @@ void main() {
       });
     });
     group('Write/Read line - sync - $styleName -', () {
-      setUp(() async => init(file));
+      setUp(() async => await UtfAbc.init(file));
 
       test('for each type', () {
         UtfAbc.forEachTypeSync(file, (type, file) async {
@@ -110,7 +102,7 @@ void main() {
       });
     });
     group('Line breaks - $styleName -', () {
-      setUp(() async => init(file));
+      setUp(() async => await UtfAbc.init(file));
 
       test('POSIX', () async {
         await file.writeUtfAsString('a\nb\nc', type: UtfType.utf8, withPosixLineBreaks: true);
