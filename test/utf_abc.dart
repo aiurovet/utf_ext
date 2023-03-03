@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:file/file.dart';
 import 'package:utf_ext/utf_ext.dart';
 
 /// UTF test data
@@ -271,5 +272,21 @@ class UtfAbc {
         .map((x) =>
             '0x${(x < 0x10 ? '0' : '')}${x.toRadixString(0x10).toUpperCase()}, ')
         .join(''));
+  }
+
+  /// Loop through all UTF types and run a test (non-blocking)
+  ///
+  static Future<void> forEachType(File file, Future<void> Function(UtfType, File) testProc) async {
+    for (var type in UtfType.values) {
+      await testProc(type, file);
+    }
+  }
+
+  /// Loop through all UTF types and run a test (blocking)
+  ///
+  static void forEachTypeSync(File file, void Function(UtfType, File) testProc) {
+    for (var type in UtfType.values) {
+      testProc(type, file);
+    }
   }
 }

@@ -19,7 +19,7 @@ extension UtfFile on File {
   ///
   Stream<String> openUtfRead({UtfBomHandler? onBom, bool asLines = false}) {
     final source = openRead();
-    final stream = source.transform(UtfDecoder(path, onBom: onBom));
+    final stream = UtfDecoder(path, onBom: onBom).bind(source);
 
     return (asLines ? stream.transform(LineSplitter()) : stream);
   }
@@ -180,7 +180,7 @@ extension UtfFile on File {
 
     try {
       UtfHelper.writeAsLinesSync(path, lines,
-          byteWriter: output.writeFromSync as ByteIoHandlerSync,
+          byteWriter: output.writeFromSync,
           extra: extra,
           onWrite: onWrite,
           type: type,
@@ -192,7 +192,7 @@ extension UtfFile on File {
     }
   }
 
-  /// Converts a strings into bytes and saves those as a UTF file (blocking)\
+  /// Converts a strings into bytes and saves those as a UTF file (non-blocking)\
   /// \
   /// [content] - string to write (the whole content)\
   /// [mode] - write or append\
@@ -246,7 +246,7 @@ extension UtfFile on File {
     try {
       UtfHelper.writeAsStringSync(
           path,
-          byteWriter: output.writeByteSync as ByteIoHandlerSync,
+          byteWriter: output.writeFromSync,
           content,
           extra: extra,
           maxLength: null,
@@ -278,7 +278,7 @@ extension UtfFile on File {
       bool? withPosixLineBreaks = true}) {
     UtfHelper.writeChunkSync(
         encoder,
-        byteWriter: output.writeByteSync as ByteIoHandlerSync,
+        byteWriter: output.writeFromSync,
         chunk,
         onWrite: onWrite,
         params: params,

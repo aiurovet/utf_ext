@@ -28,14 +28,15 @@ class UtfHelper {
     final pileup = params.pileup as List<String>?;
     var result = VisitResult.take;
 
-    for (var start = 0, end = 0;; start = end + 1) {
+    for (var start = 0, end = 0; start < length; start = end + 1) {
       end = chunk.indexOf(UtfConst.lineBreak, start);
 
       if (end < 0) {
-        if (!isEnd) {
-          return end;
+        if (isEnd) {
+          end = length;
+        } else {
+          return start;
         }
-        break;
       }
 
       var endEx = end;
@@ -48,10 +49,11 @@ class UtfHelper {
 
       ++params.currentNo;
       final line = chunk.substring(start, endEx);
-      params.current = line;
 
       if (onRead != null) {
+        params.current = line;
         result = onRead(params);
+        params.current = chunk;
       }
 
       if (result.isTake) {
@@ -100,7 +102,7 @@ class UtfHelper {
   ///
   static void _readAllSync(String id,
       {bool asLines = false,
-      ByteIoHandlerSync? byteReader,
+      ByteReaderSync? byteReader,
       dynamic extra,
       int? maxLength,
       UtfBomHandler? onBom,
@@ -151,8 +153,11 @@ class UtfHelper {
         break;
       }
 
+      chunk = params.current!;
+
       if (end > 0) {
-        chunk = params.current!.substring(end);
+        chunk = chunk.substring(end);
+        params.current = chunk;
       }
     }
   }
@@ -170,7 +175,7 @@ class UtfHelper {
   /// Returns [pileup] if not null or an empty list otherwise
   ///
   static List<String> readAsLinesSync(String id,
-      {ByteIoHandlerSync? byteReader,
+      {ByteReaderSync? byteReader,
       dynamic extra,
       int? maxLength,
       UtfBomHandler? onBom,
@@ -203,7 +208,7 @@ class UtfHelper {
   /// Returns [pileup] if not null or an empty list otherwise
   ///
   static String readAsStringSync(String id,
-      {ByteIoHandlerSync? byteReader,
+      {ByteReaderSync? byteReader,
       dynamic extra,
       int? maxLength,
       UtfBomHandler? onBom,
@@ -237,7 +242,7 @@ class UtfHelper {
   /// Returns [pileup] if not null or an empty list otherwise
   ///
   static void writeAsLinesSync(String id, List<String> lines,
-      {ByteIoHandlerSync? byteWriter,
+      {ByteWriterSync? byteWriter,
       dynamic extra,
       int? maxLength,
       UtfIoHandlerSync? onWrite,
@@ -275,7 +280,7 @@ class UtfHelper {
   /// Windows- and Mac-specific line break with the UNIX one
   ///
   static void writeAsStringSync(String id, String content,
-      {ByteIoHandlerSync? byteWriter,
+      {ByteWriterSync? byteWriter,
       dynamic extra,
       int? maxLength,
       UtfIoHandlerSync? onWrite,
@@ -319,6 +324,8 @@ class UtfHelper {
           .isStop) {
         break;
       }
+
+      start = chunkLength;
     } while (chunkLength == maxLength);
   }
 
@@ -327,7 +334,7 @@ class UtfHelper {
   /// the Windows-specific ones
   ///
   static VisitResult writeChunkSync(UtfEncoder encoder, String chunk,
-      {ByteIoHandlerSync? byteWriter,
+      {ByteWriterSync? byteWriter,
       UtfIoHandlerSync? onWrite,
       UtfIoParams? params,
       bool withPosixLineBreaks = true}) {

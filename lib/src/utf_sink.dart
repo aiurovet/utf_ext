@@ -41,9 +41,9 @@ extension UtfSink on IOSink {
     final params = UtfIoParams(extra: extra, isSyncCall: isSyncCall);
 
     for (final line in lines) {
-      params.current = line;
+      params.current = (params.currentNo <= 0 ? '' : UtfConst.lineBreak) + line;
 
-      await writeUtfChunk(encoder, line,
+      await writeUtfChunk(encoder, params.current!,
           onWrite: onWrite,
           params: params,
           withPosixLineBreaks: withPosixLineBreaks);

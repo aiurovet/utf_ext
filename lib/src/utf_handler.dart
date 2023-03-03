@@ -6,9 +6,14 @@ import 'dart:async';
 import 'package:loop_visitor/loop_visitor.dart';
 import 'package:utf_ext/utf_ext.dart';
 
-/// Called to read/write the next portion of bytes from/to file or stdin/stdout (blocking)
+/// Called to read the next portion of bytes from/to file or stdin/stdout (blocking)
 ///
-typedef ByteIoHandlerSync = int Function(List<int> bytes,
+typedef ByteReaderSync = int Function(List<int> bytes,
+    [int start, int? end]);
+
+/// Called to write the next portion of bytes from/to file or stdin/stdout (blocking)
+///
+typedef ByteWriterSync = void Function(List<int> bytes,
     [int start, int? end]);
 
 /// Called while reading or writing UTF BOM (non-blocking or blocking)
