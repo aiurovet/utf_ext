@@ -28,7 +28,7 @@ class UtfEncoder extends Converter<String, List<int>> {
       {bool hasSink = true,
       Sink<List<int>>? sink,
       UtfType type = UtfType.none,
-      bool withBom = true}) {
+      bool? withBom}) {
     _init(hasSink, sink, type, withBom);
   }
 
@@ -40,9 +40,9 @@ class UtfEncoder extends Converter<String, List<int>> {
 
   /// Initializer
   ///
-  void _init(bool hasSink, Sink<List<int>>? sink, UtfType type, bool withBom) {
+  void _init(bool hasSink, Sink<List<int>>? sink, UtfType type, bool? withBom) {
     _type = type;
-    _withBom = withBom;
+    _withBom = withBom ?? (type != UtfType.none);
 
     if (!hasSink || (sink != null)) {
       startChunkedConversion(sink);

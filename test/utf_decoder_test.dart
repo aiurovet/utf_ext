@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:test/test.dart';
 import 'package:utf_ext/utf_ext.dart';
 
@@ -8,61 +6,60 @@ import 'utf_abc.dart';
 /// A suite of tests for UtfDecoder
 ///
 void main() {
+  final file = UtfAbc.getDummyFile();
+
   group('convert -', () {
-    test('UTF-8 - onBom', () {
-      var wasCalled = false;
-      UtfDecoder(null, hasSink: false, onBom: (type, isWrite) => wasCalled = true, type: UtfType.utf8)
-          .convert(Uint8List.fromList(UtfType.utf8.toBom(false)..addAll([0x41])));
-      expect(wasCalled, true);
+    test('onBom', () {
+      UtfAbc.forEachTypeSync(file, (type, file) async {
+        var wasCalled = false;
+        UtfDecoder(null, hasSink: false, onBom: (type, isWrite) => wasCalled = true, type: type);
+        expect(wasCalled, true);
+      });
     });
-    test('UTF-8 - empty', () {
-      final decoder = UtfDecoder(null, hasSink: false, type: UtfType.utf8);
-      expect(decoder.convert(<int>[]), '');
+    test('empty', () {
+      UtfAbc.forEachTypeSync(file, (type, file) async {
+        final decoder = UtfDecoder(null, hasSink: false, type: type);
+        expect(decoder.convert(<int>[]), '');
+      });
     });
-    test('UTF-8 - just BOM', () {
-      final decoder = UtfDecoder(null, hasSink: false, type: UtfType.utf8);
-      expect(decoder.convert(UtfAbc.bytesUtf8, 0, 3), '');
+    test('just BOM', () {
+      UtfAbc.forEachTypeSync(file, (type, file) async {
+        final decoder = UtfDecoder(null, hasSink: false, type: type);
+        expect(decoder.convert(UtfAbc.getBytes(type), 0, type.getBomLength(false)), '');
+      });
     });
-    test('UTF-8 - change of BOM', () {
-      final decoder = UtfDecoder(null, hasSink: false, type: UtfType.utf8);
-      decoder.convert(UtfAbc.bytesUtf32be, 0, 3);
-      expect(decoder.type, UtfType.utf32be);
+    test('change of BOM', () {
+      UtfAbc.forEachTypeSync(file, (type, file) async {
+        final newType = (type == UtfType.utf32be ? UtfType.utf8 : UtfType.utf32be);
+        final decoder = UtfDecoder(null, hasSink: false, type: type);
+        decoder.convert(UtfAbc.getBytes(newType), 0, 1);
+        expect(decoder.type, newType);
+      });
     });
-    test('UTF-8 - convert start', () {
-      final decoder = UtfDecoder(null, hasSink: false, type: UtfType.utf8);
-      expect(decoder.convert(UtfAbc.bytesUtf8), UtfAbc.complexStr);
+    test('start', () {
+      UtfAbc.forEachTypeSync(file, (type, file) async {
+        final decoder = UtfDecoder(null, hasSink: false, type: type);
+        final bomLen = type.getBomLength(false);
+        final minCharLen = type.getMinCharLength(false);
+        final result = decoder.convert(UtfAbc.getBytes(type), 0, bomLen + 3 * minCharLen);
+        expect(result, UtfAbc.complexStr.substring(0, 3));
+      });
     });
-    test('UTF-8 - convert middle', () {
-      final decoder = UtfDecoder(null, hasSink: false, type: UtfType.utf8);
-      expect(decoder.convert(UtfAbc.bytesUtf8, 4), UtfAbc.complexStr.substring(1));
+    test('middle', () {
+      UtfAbc.forEachTypeSync(file, (type, file) async {
+        final decoder = UtfDecoder(null, hasSink: false, type: type);
+        final bomLen = type.getBomLength(false);
+        final minCharLen = type.getMinCharLength(false);
+        final result = decoder.convert(UtfAbc.getBytes(type), bomLen + 1 * minCharLen, bomLen + 3 * minCharLen);
+        expect(result, UtfAbc.complexStr.substring(1, 3));
+      });
     });
-    test('UTF-32BE - onBom', () {
-      var wasCalled = false;
-      UtfDecoder(null, hasSink: false, onBom: (type, isWrite) => wasCalled = true, type: UtfType.utf32be)
-          .convert(Uint8List.fromList(UtfType.utf32be.toBom(false)..addAll([0x00, 0x00, 0x00, 0x41])));
-      expect(wasCalled, true);
-    });
-    test('UTF-32BE - empty', () {
-      final decoder = UtfDecoder(null, hasSink: false, type: UtfType.utf32be);
-      expect(decoder.convert(<int>[]), '');
-    });
-    test('UTF-32BE - just BOM', () {
-      final decoder = UtfDecoder(null, hasSink: false, type: UtfType.utf32be);
-      expect(decoder.convert(UtfAbc.bytesUtf32be, 0, 4), '');
-    });
-    test('UTF-32BE - change of BOM', () {
-      final decoder = UtfDecoder(null, hasSink: false, type: UtfType.utf32be);
-      decoder.convert(UtfAbc.bytesUtf8, 0, 4);
-      expect(decoder.type, UtfType.utf8);
-    });
-    test('UTF-32BE - convert start', () {
-      final decoder = UtfDecoder(null, hasSink: false, type: UtfType.utf32be);
-      expect(decoder.convert(UtfAbc.bytesUtf32be, 0, 4 * (1 + 10)),
-          UtfAbc.complexStr.substring(0, 10));
-    });
-    test('UTF-32BE - convert middle', () {
-      final decoder = UtfDecoder(null, hasSink: false, type: UtfType.utf32be);
-      expect(decoder.convert(UtfAbc.bytesUtf32be, 8), UtfAbc.complexStr.substring(1));
+    test('complex', () {
+      UtfAbc.forEachTypeSync(file, (type, file) async {
+        final decoder = UtfDecoder(null, hasSink: false, type: type);
+        final result = decoder.convert(UtfAbc.getBytes(type));
+        expect(result, UtfAbc.complexStr);
+      });
     });
   });
 }

@@ -24,8 +24,8 @@ class UtfCodec extends Codec<String, List<int>> {
       UtfBomHandler? onBom,
       Sink<String>? sink,
       UtfType type = UtfType.none,
-      bool withBom = true}) {
+      bool? withBom}) {
     _decoder = UtfDecoder(id, type: type, onBom: onBom);
-    _encoder = UtfEncoder(id, type: type);
+    _encoder = UtfEncoder(id, type: type, withBom: withBom);
   }
 }

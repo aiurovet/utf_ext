@@ -174,7 +174,7 @@ extension UtfFile on File {
       FileMode mode = FileMode.write,
       UtfIoHandlerSync? onWrite,
       UtfType type = UtfType.none,
-      bool withBom = true,
+      bool? withBom,
       bool withPosixLineBreaks = true}) {
     final output = openSync(mode: mode);
 

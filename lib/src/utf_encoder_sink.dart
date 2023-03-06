@@ -60,7 +60,7 @@ class UtfEncoderSink extends StringConversionSinkBase {
       this.id,
       {ByteConversionSink? byteConvSink,
       UtfType type = UtfType.none,
-      bool withBom = true}) {
+      bool? withBom}) {
     _init(byteConvSink, type, withBom);
   }
 
@@ -176,15 +176,16 @@ class UtfEncoderSink extends StringConversionSinkBase {
   /// Initializer, called twice: in the beginning and once BOM found
   ///
   FutureOr<void> _init(
-      ByteConversionSink? byteConvSink, UtfType finalType, bool withBom) async {
+      ByteConversionSink? byteConvSink, UtfType finalType, bool? withBom) async {
     if (byteConvSink != null) {
       _byteConvSink = byteConvSink;
     }
 
     _bomLength = finalType.getBomLength(true);
-    _type =
-        (finalType == UtfType.none ? UtfConfig.fallbackForWrite : finalType);
-    _withBom = withBom;
+
+    final isNone = (finalType == UtfType.none);
+    _type = (isNone ? UtfConfig.fallbackForWrite : finalType);
+    _withBom = withBom ?? !isNone;
 
     _isBigEndianData = _type.isBigEndian(true);
     _isFixedLength = _type.isFixedLength(true);

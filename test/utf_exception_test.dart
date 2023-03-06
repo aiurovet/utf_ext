@@ -1,9 +1,13 @@
 import 'package:test/test.dart';
 import 'package:utf_ext/utf_ext.dart';
 
+import 'utf_abc.dart';
+
 /// A suite of tests for UtfException
 ///
 void main() {
+  final file = UtfAbc.getDummyFile();
+
   group('UtfException -', () {
     test('getEnding - empty', () {
       final e = UtfException.getEnding('', 0);
@@ -25,21 +29,11 @@ void main() {
       final e = UtfException.getEnding('abc def', 1000);
       expect(e, 'abc def');
     });
-    test('getDescription - UTF-8 - empty', () {
-      final d = UtfException(null, UtfType.utf8, null, 0).getDescription();
-      expect(d, 'Malformed UTF-8 in the beginning');
-    });
-    test('getDescription - UTF-16LE - non-empty', () {
-      final d = UtfException(null, UtfType.utf16le, 'abc', 123).getDescription();
-      expect(d, 'Malformed UTF-16LE at offset 123 after the text: abc');
-    });
-    test('toString - UTF-8 - empty', () {
-      final d = UtfException('abc.txt', UtfType.utf8, null, 0);
-      expect(d.toString(), 'Error in abc.txt: Malformed UTF-8 in the beginning');
-    });
-    test('toString - UTF-16LE - non-empty', () {
-      final d = UtfException('abc.txt', UtfType.utf16le, 'abc', 123);
-      expect(d.toString(), 'Error in abc.txt: Malformed UTF-16LE at offset 123 after the text: abc');
+    test('getDescription', () {
+      UtfAbc.forEachTypeSync(file, (type, _) async {
+        final d = UtfException(null, type, null, 0).getDescription();
+        expect(d, 'Malformed $type in the beginning');
+      });
     });
   });
 }

@@ -247,7 +247,7 @@ class UtfHelper {
       int? maxLength,
       UtfIoHandlerSync? onWrite,
       UtfType type = UtfType.none,
-      bool withBom = true,
+      bool? withBom,
       bool withPosixLineBreaks = true}) {
     var chunk = '';
 
@@ -285,7 +285,7 @@ class UtfHelper {
       int? maxLength,
       UtfIoHandlerSync? onWrite,
       UtfType type = UtfType.none,
-      bool withBom = true,
+      bool? withBom,
       bool withPosixLineBreaks = true}) {
     final encoder =
         UtfEncoder(id, hasSink: false, type: type, withBom: withBom);
