@@ -53,7 +53,7 @@ extension UtfSink on IOSink {
 
   /// Converts a sequence of strings into bytes and adds those to IOSink (blocking)\
   /// \
-  /// [id] - id of this sink (a file path or [stdout.name])
+  /// [id] - id of this sink (a file path or <stdout>)
   /// [content] - the whole content to write\
   /// [maxLength] - maximum buffer length (when null, use [UtfConfig.maxBufferLength])\
   /// [extra] - user-defined data\
@@ -122,8 +122,8 @@ extension UtfSink on IOSink {
   /// Converts a [chunk] of text into bytes and adds those to IOSink (non-blocking),\
   /// can be called sequentially\
   /// \
-  /// [content] - the whole content (string) to write\
-  /// [extra] - user-defined data\
+  /// [encoder] - the UTF ecoder\
+  /// [chunk] - a chunk of text to convert and write\
   /// [onWrite] - a function called upon every chunk of text before being written\
   /// [params] - current cvhunk info holder
   /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF

@@ -275,11 +275,11 @@ class UtfHelper {
 
   /// Converts a list of strings into bytes and saves those as a UTF file (non-blocking)\
   /// If it does not end with a line break, that will be appended to ensure any further
-  /// append to the [sink] will start from the new line
+  /// append to the sink will start from the new line
   /// \
   /// [content] - string to write (the whole content)\
-  /// [mode] - write or append\
   /// [extra] - user-defined data\
+  /// [maxLength] - limits the size of a read buffer
   /// [onWrite] - a function called upon every chunk of text before being written\
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is written
@@ -335,7 +335,7 @@ class UtfHelper {
     } while (chunkLength == maxLength);
   }
 
-  /// Converts a chunk of text into a sequence of UTF bytes and write that to [sink] (non-blocking).\
+  /// Converts a chunk of text into a sequence of UTF bytes and write that to the sink (non-blocking).\
   ///\
   /// [chunk] - a text chunk to write\
   /// [onWrite] - a function called upon every chunk of text before being written\

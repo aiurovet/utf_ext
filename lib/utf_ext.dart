@@ -1,6 +1,9 @@
 // Copyright (c) 2023, Alexander Iurovetski
 // All rights reserved under MIT license (see LICENSE file)
 
+/// A package for reading / writing text files in any major
+/// Unicode format (UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE)
+///
 library utf_ext;
 
 export 'src/utf_byte_stream.dart';
