@@ -6,7 +6,7 @@ import 'package:utf_ext/src/utf_type.dart';
 
 import 'utf_abc.dart';
 
-/// A suite of tests for UtfBom
+/// A suite of tests for UtfFile
 ///
 void main() {
   MemoryFileSystemExt.forEach((fs) {

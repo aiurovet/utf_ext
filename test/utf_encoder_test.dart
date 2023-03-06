@@ -3,7 +3,7 @@ import 'package:utf_ext/utf_ext.dart';
 
 import 'utf_abc.dart';
 
-/// A suite of tests for UtfEncoderSink
+/// A suite of tests for UtfEncoder
 ///
 void main() {
   final file = UtfAbc.getDummyFile();
