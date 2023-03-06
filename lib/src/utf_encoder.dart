@@ -65,8 +65,8 @@ class UtfEncoder extends Converter<String, List<int>> {
       byteSink = ByteConversionSink.from(sink);
     }
 
-    _sink = UtfEncoderSink(
-        id, byteConvSink: byteSink, type: _type, withBom: _withBom);
+    _sink = UtfEncoderSink(id,
+        byteConvSink: byteSink, type: _type, withBom: _withBom);
 
     return _sink!;
   }

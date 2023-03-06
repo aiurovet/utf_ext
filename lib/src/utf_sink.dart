@@ -41,9 +41,10 @@ extension UtfSink on IOSink {
     final params = UtfIoParams(extra: extra, isSyncCall: isSyncCall);
 
     for (final line in lines) {
-      params.current = (params.currentNo <= 0 ? '' : UtfConst.lineBreak) + line;
+      params.current = line;
+      final chunk = params.current! + UtfConst.lineBreak;
 
-      await writeUtfChunk(encoder, params.current!,
+      await writeUtfChunk(encoder, chunk,
           onWrite: onWrite,
           params: params,
           withPosixLineBreaks: withPosixLineBreaks);
@@ -52,7 +53,9 @@ extension UtfSink on IOSink {
 
   /// Converts a sequence of strings into bytes and adds those to IOSink (blocking)\
   /// \
-  /// [lines] - the whole content broken into lines with no line break
+  /// [id] - id of this sink (a file path or [stdout.name])
+  /// [content] - the whole content to write\
+  /// [maxLength] - maximum buffer length (when null, use [UtfConfig.maxBufferLength])\
   /// [extra] - user-defined data\
   /// [onWrite] - a function called upon every chunk of text before being written\
   /// [type] - UTF type
@@ -61,18 +64,59 @@ extension UtfSink on IOSink {
   ///
   Future<void> writeUtfAsString(String id, String content,
       {dynamic extra,
+      int? maxLength,
       UtfIoHandler? onWrite,
       UtfType type = UtfType.none,
       bool? withBom,
       bool withPosixLineBreaks = true}) async {
     final encoder = UtfEncoder(id,
         sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
-    final params = UtfIoParams(current: content, extra: extra);
+    final fullLength = content.length;
 
-    await writeUtfChunk(encoder, content,
-        onWrite: onWrite,
-        params: params,
-        withPosixLineBreaks: withPosixLineBreaks);
+    if (maxLength == null) {
+      maxLength = fullLength;
+
+      if (maxLength > UtfConfig.maxBufferLength) {
+        maxLength = UtfConfig.maxBufferLength;
+      }
+    } else if (maxLength > fullLength) {
+      maxLength = fullLength;
+    }
+
+    final isSyncCall = onWrite is UtfIoHandlerSync;
+    final params =
+        UtfIoParams(extra: extra, isSyncCall: isSyncCall, pileup: content);
+
+    var chunk = '';
+    var chunkLength = maxLength;
+    var start = 0;
+
+    do {
+      if ((start + maxLength) >= fullLength) {
+        chunk = (start == 0 ? content : content.substring(start));
+        chunkLength = (fullLength - start);
+
+        // Ensuring any later append will start from the new line
+        //
+        if (!chunk.endsWith(UtfConst.lineBreak)) {
+          chunk += UtfConst.lineBreak;
+          chunkLength += UtfConst.lineBreak.length;
+        }
+      } else {
+        chunk = content.substring(start, maxLength);
+        chunkLength = maxLength;
+      }
+
+      if ((await writeUtfChunk(encoder, chunk,
+              onWrite: onWrite,
+              params: params,
+              withPosixLineBreaks: withPosixLineBreaks))
+          .isStop) {
+        break;
+      }
+
+      start = chunkLength;
+    } while (chunkLength == maxLength);
   }
 
   /// Converts a [chunk] of text into bytes and adds those to IOSink (non-blocking),\

@@ -8,13 +8,11 @@ import 'package:utf_ext/utf_ext.dart';
 
 /// Called to read the next portion of bytes from/to file or stdin/stdout (blocking)
 ///
-typedef ByteReaderSync = int Function(List<int> bytes,
-    [int start, int? end]);
+typedef ByteReaderSync = int Function(List<int> bytes, [int start, int? end]);
 
 /// Called to write the next portion of bytes from/to file or stdin/stdout (blocking)
 ///
-typedef ByteWriterSync = void Function(List<int> bytes,
-    [int start, int? end]);
+typedef ByteWriterSync = void Function(List<int> bytes, [int start, int? end]);
 
 /// Called while reading or writing UTF BOM (non-blocking or blocking)
 ///

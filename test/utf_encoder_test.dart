@@ -11,7 +11,8 @@ void main() {
   group('convert -', () {
     test('start with BOM', () {
       UtfAbc.forEachTypeSync(file, (type, _) async {
-        final encoder = UtfEncoder(null, hasSink: false, type: type, withBom: null);
+        final encoder =
+            UtfEncoder(null, hasSink: false, type: type, withBom: null);
         final bomLen = type.getBomLength(true);
         final charLen = type.getMinCharLength(true);
         final expected = UtfAbc.getBytes(type).sublist(0, bomLen + charLen);
@@ -20,16 +21,19 @@ void main() {
     });
     test('middle, no BOM', () {
       UtfAbc.forEachTypeSync(file, (type, _) async {
-        final encoder = UtfEncoder(null, hasSink: false, type: type, withBom: false);
+        final encoder =
+            UtfEncoder(null, hasSink: false, type: type, withBom: false);
         final bomLen = type.getBomLength(true);
         final charLen = type.getMinCharLength(true);
-        final expected = UtfAbc.getBytes(type).sublist(bomLen + 1 * charLen, bomLen + 3 * charLen);
+        final expected = UtfAbc.getBytes(type)
+            .sublist(bomLen + 1 * charLen, bomLen + 3 * charLen);
         expect(encoder.convert(UtfAbc.complexStr, 1, 3), expected);
       });
     });
     test('complex, no BOM', () {
       UtfAbc.forEachTypeSync(file, (type, _) async {
-        final encoder = UtfEncoder(null, hasSink: false, type: type, withBom: false);
+        final encoder =
+            UtfEncoder(null, hasSink: false, type: type, withBom: false);
         final bomLen = type.getBomLength(true);
         final expected = UtfAbc.getBytes(type).sublist(bomLen);
         expect(encoder.convert(UtfAbc.complexStr), expected);
@@ -37,7 +41,8 @@ void main() {
     });
     test('complex with BOM', () {
       UtfAbc.forEachTypeSync(file, (type, _) async {
-        final encoder = UtfEncoder(null, hasSink: false, type: type, withBom: null);
+        final encoder =
+            UtfEncoder(null, hasSink: false, type: type, withBom: null);
         expect(encoder.convert(UtfAbc.complexStr), UtfAbc.getBytes(type));
       });
     });

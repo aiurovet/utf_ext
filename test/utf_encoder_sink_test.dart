@@ -8,8 +8,8 @@ import 'utf_abc.dart';
 void main() {
   final file = UtfAbc.getDummyFile();
 
-  group('convert full complex with BOM -', () {
-    test('', () {
+  group('convert full -', () {
+    test('complex with BOM', () {
       UtfAbc.forEachTypeSync(file, (type, _) async {
         final encoder = UtfEncoderSink(null, type: type);
         expect(encoder.convert(UtfAbc.complexStr), UtfAbc.getBytes(type));
@@ -17,7 +17,7 @@ void main() {
     });
   });
   group('convert part -', () {
-    test('empty no BOM -', () {
+    test('empty no BOM', () {
       UtfAbc.forEachTypeSync(file, (type, _) async {
         final encoder = UtfEncoderSink(null, type: type, withBom: false);
         expect(encoder.convert('', 0, 3), <int>[]);
@@ -27,7 +27,8 @@ void main() {
       UtfAbc.forEachTypeSync(file, (type, _) async {
         final encoder = UtfEncoderSink(null, type: type, withBom: null);
         final bomLen = type.getBomLength(true);
-        expect(encoder.convert('', 0, 3), UtfAbc.getBytes(type).sublist(0, bomLen));
+        expect(encoder.convert('', 0, 3),
+            UtfAbc.getBytes(type).sublist(0, bomLen));
       });
     });
     test('start with BOM', () {
@@ -44,7 +45,8 @@ void main() {
         final encoder = UtfEncoderSink(null, type: type, withBom: false);
         final bomLen = type.getBomLength(true);
         final charLen = type.getMinCharLength(true);
-        final expected = UtfAbc.getBytes(type).sublist(bomLen + 1 * charLen, bomLen + 3 * charLen);
+        final expected = UtfAbc.getBytes(type)
+            .sublist(bomLen + 1 * charLen, bomLen + 3 * charLen);
         expect(encoder.convert(UtfAbc.complexStr, 1, 3), expected);
       });
     });

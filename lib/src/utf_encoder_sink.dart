@@ -56,8 +56,7 @@ class UtfEncoderSink extends StringConversionSinkBase {
 
   /// Default constructor
   ///
-  UtfEncoderSink(
-      this.id,
+  UtfEncoderSink(this.id,
       {ByteConversionSink? byteConvSink,
       UtfType type = UtfType.none,
       bool? withBom}) {
@@ -175,8 +174,8 @@ class UtfEncoderSink extends StringConversionSinkBase {
 
   /// Initializer, called twice: in the beginning and once BOM found
   ///
-  FutureOr<void> _init(
-      ByteConversionSink? byteConvSink, UtfType finalType, bool? withBom) async {
+  FutureOr<void> _init(ByteConversionSink? byteConvSink, UtfType finalType,
+      bool? withBom) async {
     if (byteConvSink != null) {
       _byteConvSink = byteConvSink;
     }

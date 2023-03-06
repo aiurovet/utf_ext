@@ -8,7 +8,7 @@ import 'package:utf_ext/utf_ext.dart';
 class UtfAbc {
   /// Empty bytes
   ///
-  static final bytes = <UtfType, Uint8List> {
+  static final bytes = <UtfType, Uint8List>{
     UtfType.none: Uint8List.fromList(<int>[
       0x41,
       0x62,
@@ -308,7 +308,8 @@ class UtfAbc {
 
   /// Loop through all UTF types and run a test (non-blocking)
   ///
-  static Future<void> forEachType(File file, Future<void> Function(UtfType, File) testProc) async {
+  static Future<void> forEachType(
+      File file, Future<void> Function(UtfType, File) testProc) async {
     for (var type in UtfType.values) {
       await testProc(type, file);
     }
@@ -316,14 +317,19 @@ class UtfAbc {
 
   /// Loop through all UTF types and run a test (blocking)
   ///
-  static void forEachTypeSync(File file, void Function(UtfType, File) testProc) {
+  static void forEachTypeSync(
+      File file, void Function(UtfType, File) testProc) {
     for (var type in UtfType.values) {
       testProc(type, file);
     }
   }
 
+  /// Get sample data for the given type
+  ///
   static Uint8List getBytes(UtfType type) => bytes[type]!;
 
+  /// Dummy file, never read from or written to
+  ///
   static File getDummyFile() => MemoryFileSystem().file('x');
 
   /// Test data setup

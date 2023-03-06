@@ -192,7 +192,9 @@ extension UtfFile on File {
     }
   }
 
-  /// Converts a strings into bytes and saves those as a UTF file (non-blocking)\
+  /// Converts [content] string into bytes and saves those as a UTF file (non-blocking)\
+  /// Every line assumed not havine a line break which will be appended before write to
+  /// ensure any further append to this file will start from the new line
   /// \
   /// [content] - string to write (the whole content)\
   /// [mode] - write or append\
@@ -224,7 +226,9 @@ extension UtfFile on File {
     }
   }
 
-  /// Converts a strings into bytes and saves those as a UTF file (blocking)\
+  /// Converts a [content] string into bytes and saves those as a UTF file (blocking)\
+  /// If it does not end with a line break, it will be appended to ensure any further
+  /// append to this file will start from the new line
   /// \
   /// [content] - string to write (the whole content)\
   /// [mode] - write or append\

@@ -228,7 +228,9 @@ class UtfHelper {
     return pileup?.toString() ?? '';
   }
 
-  /// Converts a sequence of strings into bytes and saves those as a UTF source (blocking)\
+  /// Converts a list of strings into bytes and saves those as a UTF file (non-blocking)\
+  /// Every line assumed not having a line break which will be appended before write to
+  /// ensure any further append to this file will start from the new line
   /// \
   /// [lines] - list of strings to save
   /// [byteWriter] - function called to perform an actual writing of bytes from some source\
@@ -257,12 +259,8 @@ class UtfHelper {
     final params = UtfIoParams(extra: extra, isSyncCall: true, pileup: lines);
 
     for (var i = 0, n = lines.length; i < n; i++) {
-      if (i > 0) {
-        chunk = UtfConst.lineBreak;
-      }
-
       params.current = lines[i];
-      chunk += params.current!;
+      chunk = params.current! + UtfConst.lineBreak;
 
       if (writeChunkSync(encoder, chunk,
               byteWriter: byteWriter,
@@ -275,9 +273,17 @@ class UtfHelper {
     }
   }
 
-  /// Read stdin content as UTF (blocking) and convert it to string.\
-  /// If [withPosixLineBreaks] is true, replace all occurrences of
-  /// Windows- and Mac-specific line break with the UNIX one
+  /// Converts a list of strings into bytes and saves those as a UTF file (non-blocking)\
+  /// If it does not end with a line break, that will be appended to ensure any further
+  /// append to the [sink] will start from the new line
+  /// \
+  /// [content] - string to write (the whole content)\
+  /// [mode] - write or append\
+  /// [extra] - user-defined data\
+  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [type] - UTF type
+  /// [withBom] - if true (default if [type] is defined) byte order mark is written
+  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
   static void writeAsStringSync(String id, String content,
       {ByteWriterSync? byteWriter,
@@ -329,9 +335,12 @@ class UtfHelper {
     } while (chunkLength == maxLength);
   }
 
-  /// Convert string to a sequence of UTF bytes and write that to [sink] (non-blocking).\
-  /// If [withPosixLineBreaks] is off, replace all occurrences of POSIX line breaks with
-  /// the Windows-specific ones
+  /// Converts a chunk of text into a sequence of UTF bytes and write that to [sink] (non-blocking).\
+  ///\
+  /// [chunk] - a text chunk to write\
+  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [params] - the current chunk info holder\
+  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
   static VisitResult writeChunkSync(UtfEncoder encoder, String chunk,
       {ByteWriterSync? byteWriter,

@@ -8,7 +8,7 @@ A library for reading / writing text files in any major Unicode format (UTF-8, U
 
 ## Usage
 
-The same can be found in `example/utf_cat.dart`
+The same can be found in `example/utf_cat.dart`. See also `example/utf_conv.dart` which shows how to convert a file or `stdin` from one UTF format to another.
 
 ```dart
 import 'dart:io';
@@ -106,6 +106,11 @@ VisitResult catLine(UtfIoParams params) {
 ///
 Future<void> main(List<String> args) async {
   try {
+// final fs = LocalFileSystem();
+// fs.file('bulk')
+//   ..createSync()
+//   ..writeAsStringSync('Abc');
+
     _opts.parse(args);
 
     if (_opts.paths.isEmpty) {
@@ -199,5 +204,4 @@ Path(s) or name(s) of file(s) to print (if none then print the content of ${UtfS
 ''');
 
   exit(1);
-}
 ```

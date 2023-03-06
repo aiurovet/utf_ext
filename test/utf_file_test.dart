@@ -1,8 +1,7 @@
 import 'package:file_ext/file_ext.dart';
 import 'package:loop_visitor/loop_visitor.dart';
 import 'package:test/test.dart';
-import 'package:utf_ext/src/utf_file.dart';
-import 'package:utf_ext/src/utf_type.dart';
+import 'package:utf_ext/utf_ext.dart';
 
 import 'utf_abc.dart';
 
@@ -22,42 +21,66 @@ void main() {
 
       test('onRead - bulk', () async {
         var wasCalled = false;
-        await file.readUtfAsString(onRead: (params) { wasCalled = true; return VisitResult.take; } );
+        await file.readUtfAsString(onRead: (params) {
+          wasCalled = true;
+          return VisitResult.take;
+        });
         expect(wasCalled, true);
       });
       test('onRead - bulk - sync', () async {
         var wasCalled = false;
-        file.readUtfAsStringSync(onRead: (params) { wasCalled = true; return VisitResult.take; } );
+        file.readUtfAsStringSync(onRead: (params) {
+          wasCalled = true;
+          return VisitResult.take;
+        });
         expect(wasCalled, true);
       });
       test('onRead - line', () async {
         var wasCalled = false;
-        await file.readUtfAsLines(onRead: (params) { wasCalled = true; return VisitResult.take; } );
+        await file.readUtfAsLines(onRead: (params) {
+          wasCalled = true;
+          return VisitResult.take;
+        });
         expect(wasCalled, true);
       });
       test('onRead - line - sync', () async {
         var wasCalled = false;
-        file.readUtfAsLinesSync(onRead: (params) { wasCalled = true; return VisitResult.take; } );
+        file.readUtfAsLinesSync(onRead: (params) {
+          wasCalled = true;
+          return VisitResult.take;
+        });
         expect(wasCalled, true);
       });
       test('onWrite - bulk', () async {
         var wasCalled = false;
-        await file.writeUtfAsString('A\nB', onWrite: (params) async { wasCalled = true; return VisitResult.take; } );
+        await file.writeUtfAsString('A\nB', onWrite: (params) async {
+          wasCalled = true;
+          return VisitResult.take;
+        });
         expect(wasCalled, true);
       });
       test('onWrite - bulk - sync', () async {
         var wasCalled = false;
-        file.writeUtfAsString('A\nB', onWrite: (params) { wasCalled = true; return VisitResult.take; } );
+        file.writeUtfAsString('A\nB', onWrite: (params) {
+          wasCalled = true;
+          return VisitResult.take;
+        });
         expect(wasCalled, true);
       });
       test('onWrite - line', () async {
         var wasCalled = false;
-        await file.writeUtfAsLines(<String>['A', 'B'], onWrite: (params) async { wasCalled = true; return VisitResult.take; } );
+        await file.writeUtfAsLines(<String>['A', 'B'], onWrite: (params) async {
+          wasCalled = true;
+          return VisitResult.take;
+        });
         expect(wasCalled, true);
       });
       test('onWrite - line sync', () async {
         var wasCalled = false;
-        file.writeUtfAsLinesSync(<String>['A', 'B'], onWrite: (params) { wasCalled = true; return VisitResult.take; });
+        file.writeUtfAsLinesSync(<String>['A', 'B'], onWrite: (params) {
+          wasCalled = true;
+          return VisitResult.take;
+        });
         expect(wasCalled, true);
       });
     });
@@ -67,7 +90,8 @@ void main() {
       test('for each type', () async {
         await UtfAbc.forEachType(file, (type, file) async {
           await file.writeUtfAsString(UtfAbc.complexStr, type: type);
-          expect(await file.readUtfAsString(pileup: buffer), UtfAbc.complexStr);
+          expect(await file.readUtfAsString(pileup: buffer),
+              UtfAbc.complexStr + UtfConst.lineBreak);
         });
       });
     });
@@ -87,7 +111,8 @@ void main() {
       test('for each type', () async {
         await UtfAbc.forEachType(file, (type, file) async {
           await file.writeUtfAsLines(<String>['A', 'Bc', 'D', ''], type: type);
-          expect((await file.readUtfAsLines(pileup: lines)).length, 4 - 1);
+          expect((await file.readUtfAsLines(pileup: lines)).length,
+              4 - 1 + UtfConst.lineBreak.length);
         });
       });
     });
@@ -97,7 +122,8 @@ void main() {
       test('for each type', () {
         UtfAbc.forEachTypeSync(file, (type, file) async {
           file.writeUtfAsLinesSync(<String>['A', 'Bc', 'D', ''], type: type);
-          expect((file.readUtfAsLinesSync(pileup: lines)).length, 4 - 1);
+          expect((file.readUtfAsLinesSync(pileup: lines)).length,
+              4 - 1 + UtfConst.lineBreak.length);
         });
       });
     });
@@ -105,14 +131,18 @@ void main() {
       setUp(() async => await UtfAbc.init(file));
 
       test('POSIX', () async {
-        await file.writeUtfAsString('a\nb\nc', type: UtfType.utf8, withPosixLineBreaks: true);
+        await file.writeUtfAsString('a\nb\nc',
+            type: UtfType.utf8, withPosixLineBreaks: true);
         final data = await file.readUtfAsString(pileup: buffer);
         expect([data.contains('\n'), data.contains('\r')], [true, false]);
       });
       test('Windows', () async {
-        await file.writeUtfAsString('a\nb\nc', type: UtfType.utf8, withPosixLineBreaks: false);
-        final data = await file.readUtfAsString(pileup: buffer, withPosixLineBreaks: false);
-        expect([data.contains('\r\n'), RegExp(r'^(|[^\r])\n').hasMatch(data)], [true, false]);
+        await file.writeUtfAsString('a\nb\nc',
+            type: UtfType.utf8, withPosixLineBreaks: false);
+        final data = await file.readUtfAsString(
+            pileup: buffer, withPosixLineBreaks: false);
+        expect([data.contains('\r\n'), RegExp(r'^(|[^\r])\n').hasMatch(data)],
+            [true, false]);
       });
     });
   });

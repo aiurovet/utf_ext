@@ -36,8 +36,7 @@ class UtfException implements Exception {
 
   /// Default constructor
   ///
-  UtfException(
-      String? callerId, this.type, this.goodEnding, this.goodLength) {
+  UtfException(String? callerId, this.type, this.goodEnding, this.goodLength) {
     callerId = callerId?.trim() ?? '';
     inCaller = (callerId.isEmpty ? '' : ' in $callerId');
   }

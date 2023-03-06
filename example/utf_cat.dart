@@ -96,6 +96,11 @@ VisitResult catLine(UtfIoParams params) {
 ///
 Future<void> main(List<String> args) async {
   try {
+// final fs = LocalFileSystem();
+// fs.file('bulk')
+//   ..createSync()
+//   ..writeAsStringSync('Abc');
+
     _opts.parse(args);
 
     if (_opts.paths.isEmpty) {

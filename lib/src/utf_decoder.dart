@@ -71,8 +71,8 @@ class UtfDecoder extends Converter<List<int>, String> {
       stringSink = StringConversionSink.from(sink);
     }
 
-    _sink = UtfDecoderSink(
-        id, onBom: _onBom, strConvSink: stringSink, type: _type);
+    _sink =
+        UtfDecoderSink(id, onBom: _onBom, strConvSink: stringSink, type: _type);
 
     return _sink!;
   }
