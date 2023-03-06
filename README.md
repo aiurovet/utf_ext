@@ -8,7 +8,7 @@ A library for reading / writing text files in any major Unicode format (UTF-8, U
 
 ## Usage
 
-The same can be found in `example/utf_cat.dart`. See also `example/utf_conv.dart` which shows how to convert a file or `stdin` from one UTF format to another.
+The same can be found in `example/example_utf_cat.dart`. See also `example/example_utf_conv.dart` which shows how to convert a file or `stdin` from one UTF format to another.
 
 ```dart
 import 'dart:io';
