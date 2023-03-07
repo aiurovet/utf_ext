@@ -176,10 +176,8 @@ Never onFailure(dynamic e) {
 ///
 Future<void> processFile(String path) async {
   final inpFile = _fs.file(path);
-  final isSync = _opts.isSyncCall;
-  final isStdOut = _opts.isStdOut;
-  final isFound = (isSync ? inpFile.existsSync() : await inpFile.exists());
-  final maxLineCount = _opts.maxLineCount;
+  final isFound =
+      (_opts.isSyncCall ? inpFile.existsSync() : await inpFile.exists());
   final toType = _opts.toType;
 
   if (!isFound) {
@@ -189,18 +187,18 @@ Future<void> processFile(String path) async {
 
   final outFile = _fs.file(toOutPath(path));
 
-  final outInfo = (isStdOut
+  final outInfo = (_opts.isStdOut
       ? OutInfo(UtfStdout.name, stdout, type: toType)
       : OutInfo(outFile.path, outFile.openWrite(), type: toType));
 
-  if (maxLineCount == null) {
-    if (isSync) {
+  if (_opts.maxLineCount == null) {
+    if (_opts.isSyncCall) {
       inpFile.readUtfAsStringSync(onRead: convChunkSync, extra: outInfo);
     } else {
       await inpFile.readUtfAsString(onRead: convChunk, extra: outInfo);
     }
   } else {
-    if (isSync) {
+    if (_opts.isSyncCall) {
       inpFile.readUtfAsLinesSync(onRead: convLineSync, extra: outInfo);
     } else {
       await inpFile.readUtfAsLines(onRead: convLine, extra: outInfo);
@@ -211,20 +209,16 @@ Future<void> processFile(String path) async {
 /// Process stdin
 ///
 Future<void> processStdin() async {
-  final isSync = _opts.isSyncCall;
-  final maxLineCount = _opts.maxLineCount;
-  final toType = _opts.toType;
+  final outInfo = OutInfo(UtfStdout.name, stdout, type: _opts.toType);
 
-  final outInfo = OutInfo(UtfStdout.name, stdout, type: toType);
-
-  if (maxLineCount == null) {
-    if (isSync) {
+  if (_opts.maxLineCount == null) {
+    if (_opts.isSyncCall) {
       stdin.readUtfAsStringSync(onRead: convChunkSync, extra: outInfo);
     } else {
       await stdin.readUtfAsString(onRead: convChunk, extra: outInfo);
     }
   } else {
-    if (isSync) {
+    if (_opts.isSyncCall) {
       stdin.readAsLinesSync(onRead: convLineSync, extra: outInfo);
     } else {
       await stdin.readAsLines(onRead: convLine, extra: outInfo);

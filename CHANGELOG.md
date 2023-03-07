@@ -1,3 +1,7 @@
+## 0.1.3
+
+- Correction to examples
+
 ## 0.1.2
 
 - Removed prefix `example_` from sample Dart files and added README.md to make examples recognisable
