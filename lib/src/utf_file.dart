@@ -136,7 +136,7 @@ extension UtfFile on File {
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is printed
   /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
-  /// [addPendingLineBreak] - if true (default), ensure the output ends with the line break
+  /// [lineBreakAtEnd] - if true (default), ensure the output ends with the line break
   ///
   Future<void> writeUtfAsLines(List<String> lines,
       {dynamic extra,
@@ -145,7 +145,7 @@ extension UtfFile on File {
       UtfType type = UtfType.none,
       bool? withBom,
       bool withPosixLineBreaks = true,
-      bool addPendingLineBreak = true}) async {
+      bool lineBreakAtEnd = true}) async {
     final output = openWrite(mode: mode);
 
     try {
@@ -155,7 +155,7 @@ extension UtfFile on File {
           onWrite: onWrite,
           withBom: withBom,
           withPosixLineBreaks: withPosixLineBreaks,
-          addPendingLineBreak: addPendingLineBreak);
+          lineBreakAtEnd: lineBreakAtEnd);
     } finally {
       await output.flush();
       await output.close();
@@ -171,7 +171,7 @@ extension UtfFile on File {
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is written
   /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
-  /// [addPendingLineBreak] - if true (default), ensure the output ends with the line break
+  /// [lineBreakAtEnd] - if true (default), ensure the output ends with the line break
   ///
   void writeUtfAsLinesSync(List<String> lines,
       {dynamic extra,
@@ -180,7 +180,7 @@ extension UtfFile on File {
       UtfType type = UtfType.none,
       bool? withBom,
       bool withPosixLineBreaks = true,
-      bool addPendingLineBreak = true}) {
+      bool lineBreakAtEnd = true}) {
     final output = openSync(mode: mode);
 
     try {
@@ -191,7 +191,7 @@ extension UtfFile on File {
           type: type,
           withBom: withBom,
           withPosixLineBreaks: withPosixLineBreaks,
-          addPendingLineBreak: addPendingLineBreak);
+          lineBreakAtEnd: lineBreakAtEnd);
     } finally {
       output.flushSync();
       output.closeSync();
@@ -209,7 +209,7 @@ extension UtfFile on File {
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is written
   /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
-  /// [addPendingLineBreak] - if true (default), ensure the output ends with the line break
+  /// [lineBreakAtEnd] - if true (default), ensure the output ends with the line break
   ///
   Future<void> writeUtfAsString(String content,
       {dynamic extra,
@@ -218,7 +218,7 @@ extension UtfFile on File {
       UtfType type = UtfType.none,
       bool? withBom,
       bool? withPosixLineBreaks = true,
-      bool addPendingLineBreak = true}) async {
+      bool lineBreakAtEnd = true}) async {
     final output = openWrite(mode: mode);
 
     try {
@@ -228,7 +228,7 @@ extension UtfFile on File {
           type: type,
           withBom: withBom,
           withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem,
-          addPendingLineBreak: addPendingLineBreak);
+          lineBreakAtEnd: lineBreakAtEnd);
     } finally {
       await output.flush();
       await output.close();
@@ -246,7 +246,7 @@ extension UtfFile on File {
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is printed
   /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
-  /// [addPendingLineBreak] - if true (default), ensure the output ends with the line break\
+  /// [lineBreakAtEnd] - if true (default), ensure the output ends with the line break\
   ///
   void writeUtfAsStringSync(String content,
       {dynamic extra,
@@ -255,7 +255,7 @@ extension UtfFile on File {
       UtfType type = UtfType.none,
       bool? withBom,
       bool? withPosixLineBreaks = true,
-      bool addPendingLineBreak = true}) {
+      bool lineBreakAtEnd = true}) {
     final output = openSync(mode: FileMode.write);
 
     try {
@@ -268,7 +268,7 @@ extension UtfFile on File {
           onWrite: onWrite,
           type: type,
           withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem,
-          addPendingLineBreak: addPendingLineBreak);
+          lineBreakAtEnd: lineBreakAtEnd);
     } finally {
       output.flushSync();
       output.closeSync();

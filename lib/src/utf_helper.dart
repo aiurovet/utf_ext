@@ -241,7 +241,7 @@ class UtfHelper {
   /// [type] - UTF type\
   /// [withBom] - if true (default if [type] is defined) byte order mark is written
   /// [withPosixLineBreaks] - if true (default), replace each CR/LF with LF\
-  /// [addPendingLineBreak] - if true (default), ensure the output ends with the line break
+  /// [lineBreakAtEnd] - if true (default), ensure the output ends with the line break
   ///
   static void writeAsLinesSync(String id, List<String> lines,
       {ByteWriterSync? byteWriter,
@@ -251,7 +251,7 @@ class UtfHelper {
       UtfType type = UtfType.none,
       bool? withBom,
       bool withPosixLineBreaks = true,
-      bool addPendingLineBreak = true}) {
+      bool lineBreakAtEnd = true}) {
     var chunk = '';
 
     final encoder =
@@ -262,7 +262,7 @@ class UtfHelper {
     for (var i = 0, n = lines.length; i < n; i++) {
       params.current = lines[i];
 
-      if (addPendingLineBreak) {
+      if (lineBreakAtEnd) {
         chunk = params.current! + UtfConst.lineBreak;
       } else {
         chunk =
@@ -292,7 +292,7 @@ class UtfHelper {
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is written
   /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
-  /// [addPendingLineBreak] - if true (default), ensure the output ends with the line break
+  /// [lineBreakAtEnd] - if true (default), ensure the output ends with the line break
   ///
   static void writeAsStringSync(String id, String content,
       {ByteWriterSync? byteWriter,
@@ -302,7 +302,7 @@ class UtfHelper {
       UtfType type = UtfType.none,
       bool? withBom,
       bool withPosixLineBreaks = true,
-      bool addPendingLineBreak = true}) {
+      bool lineBreakAtEnd = true}) {
     final encoder =
         UtfEncoder(id, hasSink: false, type: type, withBom: withBom);
     final fullLength = content.length;
@@ -328,7 +328,7 @@ class UtfHelper {
         chunk = (start == 0 ? content : content.substring(start));
         chunkLength = (fullLength - start);
 
-        if (addPendingLineBreak && !chunk.endsWith(UtfConst.lineBreak)) {
+        if (lineBreakAtEnd && !chunk.endsWith(UtfConst.lineBreak)) {
           chunk += UtfConst.lineBreak;
           chunkLength += UtfConst.lineBreak.length;
         }

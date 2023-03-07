@@ -59,7 +59,7 @@ extension UtfStdout on Stdout {
           onWrite: onWrite,
           withBom: withBom,
           withPosixLineBreaks: withPosixLineBreaks,
-          addPendingLineBreak: false);
+          lineBreakAtEnd: true);
 
   /// Converts a sequence of strings into bytes and prints those (blocking)\
   /// \
@@ -84,7 +84,7 @@ extension UtfStdout on Stdout {
           type: type,
           onWrite: onWrite,
           withPosixLineBreaks: withPosixLineBreaks,
-          addPendingLineBreak: false);
+          lineBreakAtEnd: true);
 
   /// Converts a strings into bytes and prints those (non-blocking)\
   /// \
@@ -109,7 +109,7 @@ extension UtfStdout on Stdout {
           type: type,
           withBom: withBom,
           withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS,
-          addPendingLineBreak: false);
+          lineBreakAtEnd: true);
 
   /// Converts a strings into bytes and prints those (blocking)\
   /// \
@@ -133,7 +133,7 @@ extension UtfStdout on Stdout {
           onWrite: onWrite,
           type: type,
           withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS,
-          addPendingLineBreak: false);
+          lineBreakAtEnd: true);
 
   /// Converts a chunk of text into bytes and prints those (non-blocking), can be called sequentially\
   /// \

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_ext/file_ext.dart';
 import 'package:loop_visitor/loop_visitor.dart';
 import 'package:test/test.dart';
@@ -90,7 +92,7 @@ void main() {
       test('for each type', () async {
         await UtfAbc.forEachType(file, (type, file) async {
           await file.writeUtfAsString(UtfAbc.complexStr,
-              type: type, addPendingLineBreak: false);
+              type: type, lineBreakAtEnd: false);
           await file.readUtfAsString(pileup: buffer);
           expect(buffer.toString(), UtfAbc.complexStr);
         });
@@ -102,7 +104,7 @@ void main() {
       test('for each type', () {
         UtfAbc.forEachTypeSync(file, (type, file) async {
           file.writeUtfAsStringSync(UtfAbc.complexStr,
-              type: type, addPendingLineBreak: false);
+              type: type, lineBreakAtEnd: false);
           file.readUtfAsStringSync(pileup: buffer);
           expect(buffer.toString(), UtfAbc.complexStr);
         });
@@ -125,7 +127,7 @@ void main() {
       test('for each type', () {
         UtfAbc.forEachTypeSync(file, (type, file) async {
           file.writeUtfAsLinesSync(<String>['A', 'Bc', 'D', ''],
-              type: type, addPendingLineBreak: false);
+              type: type, lineBreakAtEnd: false);
           expect((file.readUtfAsLinesSync(pileup: lines)), 4 - 1);
         });
       });

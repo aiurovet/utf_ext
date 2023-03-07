@@ -29,7 +29,7 @@ extension UtfSink on IOSink {
   /// [onWrite] - a function called upon every chunk of text before being written\
   /// [withBom] - if true (default if [type] is defined) byte order mark is printed\
   /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
-  /// [addPendingLineBreak] - if true (default), ensure the output ends with the line break
+  /// [lineBreakAtEnd] - if true (default), ensure the output ends with the line break
   ///
   Future<void> writeUtfAsLines(String id, List<String> lines,
       {dynamic extra,
@@ -37,7 +37,7 @@ extension UtfSink on IOSink {
       UtfType type = UtfType.none,
       bool? withBom,
       bool withPosixLineBreaks = true,
-      bool addPendingLineBreak = true}) async {
+      bool lineBreakAtEnd = true}) async {
     final encoder = UtfEncoder(id,
         sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
     final isSyncCall = (onWrite is UtfIoHandlerSync);
@@ -48,7 +48,7 @@ extension UtfSink on IOSink {
 
       String chunk;
 
-      if (addPendingLineBreak) {
+      if (lineBreakAtEnd) {
         chunk = params.current! + UtfConst.lineBreak;
       } else {
         chunk =
@@ -72,7 +72,7 @@ extension UtfSink on IOSink {
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is printed\
   /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
-  /// [addPendingLineBreak] - if true (default), ensure the output ends with the line break
+  /// [lineBreakAtEnd] - if true (default), ensure the output ends with the line break
   ///
   Future<void> writeUtfAsString(String id, String content,
       {dynamic extra,
@@ -81,7 +81,7 @@ extension UtfSink on IOSink {
       UtfType type = UtfType.none,
       bool? withBom,
       bool withPosixLineBreaks = true,
-      bool addPendingLineBreak = true}) async {
+      bool lineBreakAtEnd = true}) async {
     final encoder = UtfEncoder(id,
         sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
     final fullLength = content.length;
@@ -109,7 +109,7 @@ extension UtfSink on IOSink {
         chunk = (start == 0 ? content : content.substring(start));
         chunkLength = (fullLength - start);
 
-        if (addPendingLineBreak && !chunk.endsWith(UtfConst.lineBreak)) {
+        if (lineBreakAtEnd && !chunk.endsWith(UtfConst.lineBreak)) {
           chunk += UtfConst.lineBreak;
           chunkLength += UtfConst.lineBreak.length;
         }
