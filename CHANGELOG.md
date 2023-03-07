@@ -1,3 +1,7 @@
+## 0.1.4
+
+- Upgraded file_ext to 0.4.0 (dev dependency)
+
 ## 0.1.3
 
 - Correction to examples
