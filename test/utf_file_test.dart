@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:file_ext/file_ext.dart';
 import 'package:loop_visitor/loop_visitor.dart';
 import 'package:test/test.dart';
