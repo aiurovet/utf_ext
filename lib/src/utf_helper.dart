@@ -174,7 +174,7 @@ class UtfHelper {
   /// \
   /// Returns [pileup] if not null or an empty list otherwise
   ///
-  static List<String> readAsLinesSync(String id,
+  static int readAsLinesSync(String id,
       {ByteReaderSync? byteReader,
       dynamic extra,
       int? maxLength,
@@ -192,7 +192,7 @@ class UtfHelper {
         pileup: pileup,
         withPosixLineBreaks: withPosixLineBreaks);
 
-    return pileup ?? <String>[];
+    return pileup?.length ?? 0;
   }
 
   /// Reads the content of a UTF source (blocking) as chunks of text and calls read handler.\
@@ -207,7 +207,7 @@ class UtfHelper {
   /// \
   /// Returns [pileup] if not null or an empty list otherwise
   ///
-  static String readAsStringSync(String id,
+  static int readAsStringSync(String id,
       {ByteReaderSync? byteReader,
       dynamic extra,
       int? maxLength,
@@ -225,23 +225,23 @@ class UtfHelper {
         pileup: pileup,
         withPosixLineBreaks: withPosixLineBreaks);
 
-    return pileup?.toString() ?? '';
+    return pileup?.length ?? 0;
   }
 
   /// Converts a list of strings into bytes and saves those as a UTF file (non-blocking)\
   /// Every line assumed not having a line break which will be appended before write to
-  /// ensure any further append to this file will start from the new line
+  /// ensure any further append to this file will start from the new line\
   /// \
-  /// [lines] - list of strings to save
+  /// [id] - a string id (path or name)\
+  /// [lines] - a list of strings to save
   /// [byteWriter] - function called to perform an actual writing of bytes from some source\
   /// [extra] - user-defined data\
   /// [maxLength] - limits the size of a read buffer
   /// [onWrite] - a function called upon every chunk of text before being written\
   /// [type] - UTF type\
   /// [withBom] - if true (default if [type] is defined) byte order mark is written
-  /// [withPosixLineBreaks] - if true (default) replace each CR/LF with LF
-  /// \
-  /// Returns [pileup] if not null or an empty list otherwise
+  /// [withPosixLineBreaks] - if true (default), replace each CR/LF with LF\
+  /// [addPendingLineBreak] - if true (default), ensure the output ends with the line break
   ///
   static void writeAsLinesSync(String id, List<String> lines,
       {ByteWriterSync? byteWriter,
@@ -250,7 +250,8 @@ class UtfHelper {
       UtfIoHandlerSync? onWrite,
       UtfType type = UtfType.none,
       bool? withBom,
-      bool withPosixLineBreaks = true}) {
+      bool withPosixLineBreaks = true,
+      bool addPendingLineBreak = true}) {
     var chunk = '';
 
     final encoder =
@@ -260,7 +261,13 @@ class UtfHelper {
 
     for (var i = 0, n = lines.length; i < n; i++) {
       params.current = lines[i];
-      chunk = params.current! + UtfConst.lineBreak;
+
+      if (addPendingLineBreak) {
+        chunk = params.current! + UtfConst.lineBreak;
+      } else {
+        chunk =
+            (params.currentNo > 0 ? UtfConst.lineBreak : '') + params.current!;
+      }
 
       if (writeChunkSync(encoder, chunk,
               byteWriter: byteWriter,
@@ -277,13 +284,15 @@ class UtfHelper {
   /// If it does not end with a line break, that will be appended to ensure any further
   /// append to the sink will start from the new line
   /// \
-  /// [content] - string to write (the whole content)\
+  /// [id] - a string id (path or name)\
+  /// [content] - a string to write (the whole content)\
   /// [extra] - user-defined data\
   /// [maxLength] - limits the size of a read buffer
   /// [onWrite] - a function called upon every chunk of text before being written\
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is written
-  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
+  /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
+  /// [addPendingLineBreak] - if true (default), ensure the output ends with the line break
   ///
   static void writeAsStringSync(String id, String content,
       {ByteWriterSync? byteWriter,
@@ -292,7 +301,8 @@ class UtfHelper {
       UtfIoHandlerSync? onWrite,
       UtfType type = UtfType.none,
       bool? withBom,
-      bool withPosixLineBreaks = true}) {
+      bool withPosixLineBreaks = true,
+      bool addPendingLineBreak = true}) {
     final encoder =
         UtfEncoder(id, hasSink: false, type: type, withBom: withBom);
     final fullLength = content.length;
@@ -317,6 +327,11 @@ class UtfHelper {
       if ((start + maxLength) >= fullLength) {
         chunk = (start == 0 ? content : content.substring(start));
         chunkLength = (fullLength - start);
+
+        if (addPendingLineBreak && !chunk.endsWith(UtfConst.lineBreak)) {
+          chunk += UtfConst.lineBreak;
+          chunkLength += UtfConst.lineBreak.length;
+        }
       } else {
         chunk = content.substring(start, maxLength);
         chunkLength = maxLength;

@@ -22,19 +22,22 @@ extension UtfSink on IOSink {
 
   /// Converts a sequence of strings into bytes and adds those to IOSink (non-blocking)\
   /// \
+  /// [id] - a string id (path or name)\
   /// [lines] - the whole content broken into lines with no line break
   /// [extra] - user-defined data\
   /// [type] - UTF type\
   /// [onWrite] - a function called upon every chunk of text before being written\
   /// [withBom] - if true (default if [type] is defined) byte order mark is printed\
-  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
+  /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
+  /// [addPendingLineBreak] - if true (default), ensure the output ends with the line break
   ///
   Future<void> writeUtfAsLines(String id, List<String> lines,
       {dynamic extra,
       UtfIoHandler? onWrite,
       UtfType type = UtfType.none,
       bool? withBom,
-      bool withPosixLineBreaks = true}) async {
+      bool withPosixLineBreaks = true,
+      bool addPendingLineBreak = true}) async {
     final encoder = UtfEncoder(id,
         sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
     final isSyncCall = (onWrite is UtfIoHandlerSync);
@@ -42,7 +45,15 @@ extension UtfSink on IOSink {
 
     for (final line in lines) {
       params.current = line;
-      final chunk = params.current! + UtfConst.lineBreak;
+
+      String chunk;
+
+      if (addPendingLineBreak) {
+        chunk = params.current! + UtfConst.lineBreak;
+      } else {
+        chunk =
+            (params.currentNo > 0 ? UtfConst.lineBreak : '') + params.current!;
+      }
 
       await writeUtfChunk(encoder, chunk,
           onWrite: onWrite,
@@ -60,7 +71,8 @@ extension UtfSink on IOSink {
   /// [onWrite] - a function called upon every chunk of text before being written\
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is printed\
-  /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
+  /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
+  /// [addPendingLineBreak] - if true (default), ensure the output ends with the line break
   ///
   Future<void> writeUtfAsString(String id, String content,
       {dynamic extra,
@@ -68,7 +80,8 @@ extension UtfSink on IOSink {
       UtfIoHandler? onWrite,
       UtfType type = UtfType.none,
       bool? withBom,
-      bool withPosixLineBreaks = true}) async {
+      bool withPosixLineBreaks = true,
+      bool addPendingLineBreak = true}) async {
     final encoder = UtfEncoder(id,
         sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
     final fullLength = content.length;
@@ -96,9 +109,7 @@ extension UtfSink on IOSink {
         chunk = (start == 0 ? content : content.substring(start));
         chunkLength = (fullLength - start);
 
-        // Ensuring any later append will start from the new line
-        //
-        if (!chunk.endsWith(UtfConst.lineBreak)) {
+        if (addPendingLineBreak && !chunk.endsWith(UtfConst.lineBreak)) {
           chunk += UtfConst.lineBreak;
           chunkLength += UtfConst.lineBreak.length;
         }

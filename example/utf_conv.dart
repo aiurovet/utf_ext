@@ -33,6 +33,10 @@ class Options {
   ///
   static const appVersion = '1.0.0';
 
+  /// Option flag: to stdout rather than to file
+  ///
+  var isStdOut = false;
+
   /// Option flag: read file line by line synchronously
   ///
   var isSyncCall = false;
@@ -50,7 +54,7 @@ class Options {
   ///
   void parse(List<String> args) {
     var optDefs = '''
-      |?,h,help|q,quiet|v,verbose|l,line:?|s,sync,synch|t,to:|::?
+      |?,h,help|q,quiet|v,verbose|l,line:?|s,sync,synch|t,to:|u,stdout|::?
     ''';
 
     var o = parseArgs(optDefs, args);
@@ -62,6 +66,7 @@ class Options {
     }
 
     maxLineCount = o.getIntValue('l');
+    isStdOut = o.isSet('u');
     isSyncCall = o.isSet('s');
     toType = UtfType.parse(o.getStrValue('t'), UtfConfig.fallbackForWrite);
 
@@ -172,6 +177,7 @@ Never onFailure(dynamic e) {
 Future<void> processFile(String path) async {
   final inpFile = _fs.file(path);
   final isSync = _opts.isSyncCall;
+  final isStdOut = _opts.isStdOut;
   final isFound = (isSync ? inpFile.existsSync() : await inpFile.exists());
   final maxLineCount = _opts.maxLineCount;
   final toType = _opts.toType;
@@ -182,7 +188,10 @@ Future<void> processFile(String path) async {
   }
 
   final outFile = _fs.file(toOutPath(path));
-  final outInfo = OutInfo(outFile.path, outFile.openWrite(), type: toType);
+
+  final outInfo = (isStdOut
+    ? OutInfo(UtfStdout.name, stdout, type: toType)
+    : OutInfo(outFile.path, outFile.openWrite(), type: toType));
 
   if (maxLineCount == null) {
     if (isSync) {

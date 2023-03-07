@@ -16,7 +16,7 @@ extension UtfStringStream on Stream<String> {
   /// \
   /// Returns [pileup] if not null or an empty list otherwise
   ///
-  Future<List<String>> readUtfAsLines(
+  Future<int> readUtfAsLines(
       {dynamic extra, UtfIoHandler? onRead, List<String>? pileup}) async {
     pileup?.clear();
 
@@ -44,7 +44,7 @@ extension UtfStringStream on Stream<String> {
       }
     }
 
-    return pileup ?? <String>[];
+    return pileup?.length ?? 0;
   }
 
   /// Loops through every line read from a stream and calls a user-defined function\
@@ -56,7 +56,7 @@ extension UtfStringStream on Stream<String> {
   /// \
   /// Returns [pileup] if not null or an empty string otherwise
   ///
-  Future<String> readUtfAsString(
+  Future<int> readUtfAsString(
       {dynamic extra,
       UtfIoHandler? onRead,
       StringBuffer? pileup,
@@ -88,6 +88,6 @@ extension UtfStringStream on Stream<String> {
       }
     }
 
-    return pileup?.toString() ?? '';
+    return pileup?.length ?? 0;
   }
 }

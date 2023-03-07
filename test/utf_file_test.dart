@@ -89,9 +89,10 @@ void main() {
 
       test('for each type', () async {
         await UtfAbc.forEachType(file, (type, file) async {
-          await file.writeUtfAsString(UtfAbc.complexStr, type: type);
-          expect(await file.readUtfAsString(pileup: buffer),
-              UtfAbc.complexStr + UtfConst.lineBreak);
+          await file.writeUtfAsString(UtfAbc.complexStr,
+              type: type, addPendingLineBreak: false);
+          await file.readUtfAsString(pileup: buffer);
+          expect(buffer.toString(), UtfAbc.complexStr);
         });
       });
     });
@@ -100,8 +101,10 @@ void main() {
 
       test('for each type', () {
         UtfAbc.forEachTypeSync(file, (type, file) async {
-          file.writeUtfAsStringSync(UtfAbc.complexStr, type: type);
-          expect(file.readUtfAsStringSync(pileup: buffer), UtfAbc.complexStr);
+          file.writeUtfAsStringSync(UtfAbc.complexStr,
+              type: type, addPendingLineBreak: false);
+          file.readUtfAsStringSync(pileup: buffer);
+          expect(buffer.toString(), UtfAbc.complexStr);
         });
       });
     });
@@ -111,7 +114,7 @@ void main() {
       test('for each type', () async {
         await UtfAbc.forEachType(file, (type, file) async {
           await file.writeUtfAsLines(<String>['A', 'Bc', 'D', ''], type: type);
-          expect((await file.readUtfAsLines(pileup: lines)).length,
+          expect((await file.readUtfAsLines(pileup: lines)),
               4 - 1 + UtfConst.lineBreak.length);
         });
       });
@@ -121,9 +124,9 @@ void main() {
 
       test('for each type', () {
         UtfAbc.forEachTypeSync(file, (type, file) async {
-          file.writeUtfAsLinesSync(<String>['A', 'Bc', 'D', ''], type: type);
-          expect((file.readUtfAsLinesSync(pileup: lines)).length,
-              4 - 1 + UtfConst.lineBreak.length);
+          file.writeUtfAsLinesSync(<String>['A', 'Bc', 'D', ''],
+              type: type, addPendingLineBreak: false);
+          expect((file.readUtfAsLinesSync(pileup: lines)), 4 - 1);
         });
       });
     });
@@ -133,14 +136,15 @@ void main() {
       test('POSIX', () async {
         await file.writeUtfAsString('a\nb\nc',
             type: UtfType.utf8, withPosixLineBreaks: true);
-        final data = await file.readUtfAsString(pileup: buffer);
+        await file.readUtfAsString(pileup: buffer);
+        final data = buffer.toString();
         expect([data.contains('\n'), data.contains('\r')], [true, false]);
       });
       test('Windows', () async {
         await file.writeUtfAsString('a\nb\nc',
             type: UtfType.utf8, withPosixLineBreaks: false);
-        final data = await file.readUtfAsString(
-            pileup: buffer, withPosixLineBreaks: false);
+        await file.readUtfAsString(pileup: buffer, withPosixLineBreaks: false);
+        final data = buffer.toString();
         expect([data.contains('\r\n'), RegExp(r'^(|[^\r])\n').hasMatch(data)],
             [true, false]);
       });

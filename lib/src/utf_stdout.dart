@@ -10,7 +10,9 @@ import 'package:utf_ext/utf_ext.dart';
 /// Class for the formatted output
 ///
 extension UtfStdout on Stdout {
-  bool get isPosixOS => !Platform.isWindows;
+  /// Flag indicating the current OS is POSIX-compliant
+  ///
+  static bool get isPosixOS => !Platform.isWindows;
 
   /// Const: name for stdin
   ///
@@ -56,7 +58,8 @@ extension UtfStdout on Stdout {
           type: type,
           onWrite: onWrite,
           withBom: withBom,
-          withPosixLineBreaks: withPosixLineBreaks);
+          withPosixLineBreaks: withPosixLineBreaks,
+          addPendingLineBreak: false);
 
   /// Converts a sequence of strings into bytes and prints those (blocking)\
   /// \
@@ -80,7 +83,8 @@ extension UtfStdout on Stdout {
           extra: extra,
           type: type,
           onWrite: onWrite,
-          withPosixLineBreaks: withPosixLineBreaks);
+          withPosixLineBreaks: withPosixLineBreaks,
+          addPendingLineBreak: false);
 
   /// Converts a strings into bytes and prints those (non-blocking)\
   /// \
@@ -104,7 +108,8 @@ extension UtfStdout on Stdout {
           onWrite: onWrite,
           type: type,
           withBom: withBom,
-          withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
+          withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS,
+          addPendingLineBreak: false);
 
   /// Converts a strings into bytes and prints those (blocking)\
   /// \
@@ -127,7 +132,8 @@ extension UtfStdout on Stdout {
           extra: extra,
           onWrite: onWrite,
           type: type,
-          withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
+          withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS,
+          addPendingLineBreak: false);
 
   /// Converts a chunk of text into bytes and prints those (non-blocking), can be called sequentially\
   /// \

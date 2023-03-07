@@ -9,7 +9,7 @@ import 'package:utf_ext/utf_ext.dart';
 extension UtfStdin on Stdin {
   /// Const: flag indicating the current OS is not Windows
   ///
-  bool get isPosixOS => !Platform.isWindows;
+  static bool get isPosixOS => !Platform.isWindows;
 
   /// Const: name for stdin
   ///
@@ -24,7 +24,7 @@ extension UtfStdin on Stdin {
   /// \
   /// Returns [pileup] if not null or an empty list otherwise
   ///
-  Future<List<String>> readAsLines(
+  Future<int> readAsLines(
           {dynamic extra,
           UtfBomHandler? onBom,
           UtfIoHandler? onRead,
@@ -41,7 +41,7 @@ extension UtfStdin on Stdin {
   /// \
   /// Returns [pileup] if not null or an empty list otherwise
   ///
-  List<String> readAsLinesSync(
+  int readAsLinesSync(
           {dynamic extra,
           UtfBomHandler? onBom,
           UtfIoHandlerSync? onRead,
@@ -83,7 +83,7 @@ extension UtfStdin on Stdin {
   /// \
   /// Returns [pileup] if not null or an empty list otherwise
   ///
-  Future<String> readUtfAsString(
+  Future<int> readUtfAsString(
           {dynamic extra,
           UtfBomHandler? onBom,
           UtfIoHandler? onRead,
@@ -106,7 +106,7 @@ extension UtfStdin on Stdin {
   /// \
   /// Returns [pileup] if not null or an empty list otherwise
   ///
-  String readUtfAsStringSync(
+  int readUtfAsStringSync(
           {dynamic extra,
           UtfBomHandler? onBom,
           UtfIoHandlerSync? onRead,

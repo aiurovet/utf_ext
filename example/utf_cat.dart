@@ -34,7 +34,7 @@ class Options {
 
   /// Option flag: read file line by line synchronously
   ///
-  var isSynch = false;
+  var isSyncCall = false;
 
   /// Read file or stdin line by line when value != null,
   /// and limit to the number of lines when value > 0
@@ -59,7 +59,7 @@ class Options {
     }
 
     maxLineCount = o.getIntValue('l');
-    isSynch = o.isSet('s');
+    isSyncCall = o.isSet('s');
 
     paths.addAll(o.getStrValues(''));
     paths.removeWhere((x) => x.trim().isEmpty);
@@ -96,11 +96,6 @@ VisitResult catLine(UtfIoParams params) {
 ///
 Future<void> main(List<String> args) async {
   try {
-// final fs = LocalFileSystem();
-// fs.file('bulk')
-//   ..createSync()
-//   ..writeAsStringSync('Abc');
-
     _opts.parse(args);
 
     if (_opts.paths.isEmpty) {
@@ -135,13 +130,13 @@ Future<bool> processFile(String path) async {
   }
 
   if (_opts.maxLineCount == null) {
-    if (_opts.isSynch) {
+    if (_opts.isSyncCall) {
       file.readUtfAsStringSync(onBom: catBom, onRead: catChunk);
     } else {
       await file.readUtfAsString(onBom: catBom, onRead: catChunk);
     }
   } else {
-    if (_opts.isSynch) {
+    if (_opts.isSyncCall) {
       file.readUtfAsLinesSync(onBom: catBom, onRead: catLine);
     } else {
       await file.readUtfAsLines(onBom: catBom, onRead: catLine);
@@ -155,13 +150,13 @@ Future<bool> processFile(String path) async {
 ///
 Future<bool> processStdin() async {
   if (_opts.maxLineCount == null) {
-    if (_opts.isSynch) {
+    if (_opts.isSyncCall) {
       stdin.readUtfAsStringSync(onBom: catBom, onRead: catChunk);
     } else {
       await stdin.readUtfAsString(onBom: catBom, onRead: catChunk);
     }
   } else {
-    if (_opts.isSynch) {
+    if (_opts.isSyncCall) {
       stdin.readAsLinesSync(onBom: catBom, onRead: catLine);
     } else {
       await stdin.readAsLines(onBom: catBom, onRead: catLine);
