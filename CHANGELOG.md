@@ -1,7 +1,7 @@
 ## 0.1.5
 
 - Rename: `addPendingLineBreak` to `lineBreakAtEnd`
-- Bugfix: methods printUtf* of UtfStdio should add line break at the end
+- Bugfix: `printUtf*` of `UtfStdio` should add line break at the end
 
 ## 0.1.4
 
