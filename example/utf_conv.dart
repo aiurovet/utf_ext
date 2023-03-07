@@ -190,8 +190,8 @@ Future<void> processFile(String path) async {
   final outFile = _fs.file(toOutPath(path));
 
   final outInfo = (isStdOut
-    ? OutInfo(UtfStdout.name, stdout, type: toType)
-    : OutInfo(outFile.path, outFile.openWrite(), type: toType));
+      ? OutInfo(UtfStdout.name, stdout, type: toType)
+      : OutInfo(outFile.path, outFile.openWrite(), type: toType));
 
   if (maxLineCount == null) {
     if (isSync) {
