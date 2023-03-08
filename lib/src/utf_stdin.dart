@@ -24,7 +24,7 @@ extension UtfStdin on Stdin {
   /// \
   /// Returns [pileup] if not null or an empty list otherwise
   ///
-  Future<int> readAsLines(
+  Future<int> readUtfAsLines(
           {dynamic extra,
           UtfBomHandler? onBom,
           UtfIoHandler? onRead,
@@ -41,7 +41,7 @@ extension UtfStdin on Stdin {
   /// \
   /// Returns [pileup] if not null or an empty list otherwise
   ///
-  int readAsLinesSync(
+  int readUtfAsLinesSync(
           {dynamic extra,
           UtfBomHandler? onBom,
           UtfIoHandlerSync? onRead,

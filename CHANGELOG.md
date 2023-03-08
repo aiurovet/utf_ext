@@ -1,3 +1,7 @@
+## 0.1.6
+
+- Rename: `readAsLines*` to `readUtfAsLines*` for `UtfStdin`
+
 ## 0.1.5
 
 - Rename: `addPendingLineBreak` to `lineBreakAtEnd`

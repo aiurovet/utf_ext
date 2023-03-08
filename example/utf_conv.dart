@@ -219,9 +219,9 @@ Future<void> processStdin() async {
     }
   } else {
     if (_opts.isSyncCall) {
-      stdin.readAsLinesSync(onRead: convLineSync, extra: outInfo);
+      stdin.readUtfAsLinesSync(onRead: convLineSync, extra: outInfo);
     } else {
-      await stdin.readAsLines(onRead: convLine, extra: outInfo);
+      await stdin.readUtfAsLines(onRead: convLine, extra: outInfo);
     }
   }
 }

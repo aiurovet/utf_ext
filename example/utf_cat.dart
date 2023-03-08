@@ -157,9 +157,9 @@ Future<bool> processStdin() async {
     }
   } else {
     if (_opts.isSyncCall) {
-      stdin.readAsLinesSync(onBom: catBom, onRead: catLine);
+      stdin.readUtfAsLinesSync(onBom: catBom, onRead: catLine);
     } else {
-      await stdin.readAsLines(onBom: catBom, onRead: catLine);
+      await stdin.readUtfAsLines(onBom: catBom, onRead: catLine);
     }
   }
 
