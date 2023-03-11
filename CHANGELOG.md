@@ -1,3 +1,7 @@
+## 0.1.8
+
+- Updated documentation and upgraded packages
+
 ## 0.1.7
 
 - Upgraded `file_ext` to version `0.5.0`
