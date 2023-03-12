@@ -1,3 +1,7 @@
+## 0.1.9
+
+- Fixing the pub.dev recognition of examples
+
 ## 0.1.8
 
 - Updated documentation and upgraded packages
