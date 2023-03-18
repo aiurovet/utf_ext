@@ -1,3 +1,9 @@
+## 0.2.0
+
+- Allowed to modify content in read and write handlers
+- Renamed `maxBufferLength` to `bufferLength` in `UtfConfig`
+- Added option `-b,-buf,-bufsize` for a buffer limit to `utf_cat` and `utf_conv` examples
+
 ## 0.1.9
 
 - Fixing the pub.dev recognition of examples

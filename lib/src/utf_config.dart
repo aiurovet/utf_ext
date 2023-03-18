@@ -17,5 +17,5 @@ class UtfConfig {
   /// Maximum size of a buffer for synchronous (blocking) operations\
   /// Can be set in `main()`
   ///
-  static var maxBufferLength = 16 * 1024;
+  static var bufferLength = 16 * 1024;
 }

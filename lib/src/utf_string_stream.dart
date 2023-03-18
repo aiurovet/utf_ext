@@ -36,7 +36,7 @@ extension UtfStringStream on Stream<String> {
 
       if (result.isTake) {
         ++params.takenNo;
-        pileup?.add(line);
+        pileup?.add(params.current ?? '');
       }
 
       if (result.isStop) {
@@ -80,7 +80,7 @@ extension UtfStringStream on Stream<String> {
 
       if (result.isTake) {
         ++params.takenNo;
-        pileup?.write(params.current);
+        pileup?.write(params.current ?? '');
       }
 
       if (result.isStop) {

@@ -47,7 +47,7 @@ class Options {
   ///
   void parse(List<String> args) {
     var optDefs = '''
-      |?,h,help|q,quiet|v,verbose|l,line:?|s,sync,synch|::?
+      |?,h,help|q,quiet|v,verbose|b,buf,bufsize:|l,line:?|s,sync,synch|::?
     ''';
 
     var o = parseArgs(optDefs, args);
@@ -58,11 +58,21 @@ class Options {
       usage();
     }
 
+    _setBufferLength(o.getIntValue('b'));
+
     maxLineCount = o.getIntValue('l');
     isSyncCall = o.isSet('s');
 
     paths.addAll(o.getStrValues(''));
     paths.removeWhere((x) => x.trim().isEmpty);
+  }
+
+  /// Set the buffer size
+  ///
+  void _setBufferLength(int? value) {
+    if ((value != null) && (value > 0)) {
+      UtfConfig.bufferLength = value;
+    }
   }
 }
 
@@ -178,10 +188,11 @@ ${Options.appName} [OPTIONS] [ARGUMENTS]
 
 OPTIONS:
 
--?, -h[elp]    - this help screen
--l[ine] MAXNUM - cat line by line (default: cat chunks of text),
-                 limit to MAXNUM (use 0 for no limit)
--s[ync[h]]     - cat synchronously
+-?, -h[elp]      - this help screen
+-b[uf[size]] LEN - set the buffer length
+-l[ine]      NUM - convert line by line (default: convert chunks of text),
+                   limit to the first NUM lines (0 = no limit)
+-s[ync[h]]       - cat synchronously
 
 ARGUMENTS:
 

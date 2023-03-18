@@ -48,16 +48,18 @@ class UtfHelper {
       }
 
       ++params.currentNo;
-      final line = chunk.substring(start, endEx);
+      var line = chunk.substring(start, endEx);
 
       if (onRead != null) {
         params.current = line;
         result = onRead(params);
+        line = params.current ?? '';
         params.current = chunk;
       }
 
       if (result.isTake) {
-        pileup?.add(chunk);
+        ++params.takenNo;
+        pileup?.add(line);
       }
 
       if (result.isStop) {
@@ -72,19 +74,22 @@ class UtfHelper {
   ///
   static int _processReadChunkAsStringSync(
       UtfIoParams params, UtfIoHandlerSync? onRead) {
-    final chunk = params.current!;
-    final length = chunk.length;
-
     ++params.currentNo;
-    params.current = chunk;
-    final result = (onRead == null ? VisitResult.take : onRead(params));
-    final pileup = (result.isTake ? params.pileup : null);
 
-    if ((pileup != null) && (length > 0)) {
-      (pileup as StringBuffer).write(chunk);
+    final result = (onRead == null ? VisitResult.take : onRead(params));
+
+    if (result.isStop) {
+      return -1;
     }
 
-    return (result.isStop ? -1 : length);
+    final chunk = params.current ?? '';
+
+    if (result.isTake) {
+      ++params.takenNo;
+      (params.pileup as StringBuffer?)?.write(chunk);
+    }
+
+    return chunk.length;
   }
 
   /// Reads the content of a UTF source (blocking) and calls read handler.\
@@ -112,7 +117,7 @@ class UtfHelper {
     final params = UtfIoParams(extra: extra, isSyncCall: true, pileup: pileup);
     pileup?.clear();
 
-    maxLength ??= UtfConfig.maxBufferLength;
+    maxLength ??= UtfConfig.bufferLength;
 
     final bytes = List<int>.filled(maxLength, 0);
     var chunk = '';
@@ -310,8 +315,8 @@ class UtfHelper {
     if (maxLength == null) {
       maxLength = fullLength;
 
-      if (maxLength > UtfConfig.maxBufferLength) {
-        maxLength = UtfConfig.maxBufferLength;
+      if (maxLength > UtfConfig.bufferLength) {
+        maxLength = UtfConfig.bufferLength;
       }
     } else if (maxLength > fullLength) {
       maxLength = fullLength;

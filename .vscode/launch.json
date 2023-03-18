@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     { "name": "Cat  - Help",  "request": "launch", "type": "dart", "program": "example/utf_cat.dart", "args": ["-?"] },
-    { "name": "Cat  - File",  "request": "launch", "type": "dart", "program": "example/utf_cat.dart", "args": ["data/utf8.txt"] },
+    { "name": "Cat  - File",  "request": "launch", "type": "dart", "program": "example/utf_cat.dart", "args": ["data/utf8.txt", "-b=3"] },
     { "name": "Cat  - Stdin", "request": "launch", "type": "dart", "program": "example/utf_cat.dart", "args": ["<", "data/utf.txt" ], "console": "terminal" },
 
     { "name": "Conv - Help",  "request": "launch", "type": "dart", "program": "example/utf_conv.dart", "args": ["-?"] },

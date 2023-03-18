@@ -54,7 +54,9 @@ class Options {
   ///
   void parse(List<String> args) {
     var optDefs = '''
-      |?,h,help|q,quiet|v,verbose|l,line:?|s,sync,synch|t,to:|u,stdout|::?
+      |?,h,help|q,quiet|v,verbose
+      |b,buf,bufsize:|l,line:?|s,sync,synch
+      |t,to:|u,stdout|::?
     ''';
 
     var o = parseArgs(optDefs, args);
@@ -65,6 +67,8 @@ class Options {
       usage();
     }
 
+    _setBufferLength(o.getIntValue('b'));
+
     maxLineCount = o.getIntValue('l');
     isStdOut = o.isSet('u');
     isSyncCall = o.isSet('s');
@@ -72,6 +76,14 @@ class Options {
 
     paths.addAll(o.getStrValues(''));
     paths.removeWhere((x) => x.trim().isEmpty);
+  }
+
+  /// Set the buffer size
+  ///
+  void _setBufferLength(int? value) {
+    if ((value != null) && (value > 0)) {
+      UtfConfig.bufferLength = value;
+    }
   }
 }
 
@@ -247,12 +259,13 @@ ${Options.appName} [OPTIONS] [ARGUMENTS]
 
 OPTIONS:
 
--?, -h[elp]    - this help screen
--l[ine] MAXNUM - convert line by line (default: convert chunks of text),
-                 limit to MAXNUM (0 = no limit)
--s[ync]        - convert synchronously
--t[o] TYPE     - convert the input into the output of the given type (default: utf8 without BOM)
-                 supported TYPEs: utf8 (with BOM or not), utf16le, utf16be, utf32le, utf32be
+-?, -h[elp]      - this help screen
+-b[uf[size]] LEN - set the buffer length
+-l[ine]      NUM - convert line by line (default: convert chunks of text),
+                   limit to the first NUM lines (0 = no limit)
+-s[ync]          - convert synchronously
+-t[o] TYPE       - convert the input into the output of the given type (default: utf8 without BOM)
+                   supported TYPEs: utf8 (with BOM or not), utf16le, utf16be, utf32le, utf32be
 
 ARGUMENTS:
 

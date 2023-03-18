@@ -1,4 +1,4 @@
-A library for reading and writing text files in any major Unicode format (UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE).
+A library for reading and writing text files or streams in any major Unicode format (UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE).
 
 ## Features
 

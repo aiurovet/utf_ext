@@ -66,7 +66,7 @@ extension UtfSink on IOSink {
   /// \
   /// [id] - id of this sink (a file path or <stdout>)
   /// [content] - the whole content to write\
-  /// [maxLength] - maximum buffer length (when null, use [UtfConfig.maxBufferLength])\
+  /// [maxLength] - maximum buffer length (when null, use [UtfConfig.bufferLength])\
   /// [extra] - user-defined data\
   /// [onWrite] - a function called upon every chunk of text before being written\
   /// [type] - UTF type
@@ -89,8 +89,8 @@ extension UtfSink on IOSink {
     if (maxLength == null) {
       maxLength = fullLength;
 
-      if (maxLength > UtfConfig.maxBufferLength) {
-        maxLength = UtfConfig.maxBufferLength;
+      if (maxLength > UtfConfig.bufferLength) {
+        maxLength = UtfConfig.bufferLength;
       }
     } else if (maxLength > fullLength) {
       maxLength = fullLength;
