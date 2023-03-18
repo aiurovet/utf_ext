@@ -9,6 +9,7 @@ How To Use the `utf_ext` Package
 
 ```dart
 import 'package:file/file.dart';
+import 'package:loop_visitor/loop_visitor.dart';
 ...
 final data = await filterByPrefixAndToUpperCase('example.md', '-');
 ...

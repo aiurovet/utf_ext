@@ -1,3 +1,7 @@
+## 0.2.1
+
+- Fixed sample code
+
 ## 0.2.0
 
 - Allowed to modify content in read and write handlers
