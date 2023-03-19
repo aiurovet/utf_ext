@@ -55,7 +55,6 @@ class UtfHelper {
         result = onRead(params);
       }
 
-
       if (result.isTake) {
         ++params.takenNo;
         pileup?.add(params.current ?? '');
