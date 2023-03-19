@@ -1,3 +1,8 @@
+## 0.2.2
+
+- Ensuring onWrite is able to modify lines and chunks
+- Minor bugfix for the use of onRead
+
 ## 0.2.1
 
 - Fixed sample code

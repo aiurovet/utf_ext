@@ -3,6 +3,12 @@
 
 import 'dart:io';
 
+/// This example depends on the following packages:
+///
+/// - loop_visitor
+/// - parse_args
+/// - thin_logger
+
 import 'package:file/local.dart';
 import 'package:loop_visitor/loop_visitor.dart';
 import 'package:parse_args/parse_args.dart';

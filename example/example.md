@@ -8,6 +8,8 @@ How To Use the `utf_ext` Package
 ## Sample code
 
 ```dart
+/// This example depends on the package 'loop_visitor'
+
 import 'package:file/file.dart';
 import 'package:loop_visitor/loop_visitor.dart';
 ...
