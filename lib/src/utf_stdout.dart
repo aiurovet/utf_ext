@@ -157,12 +157,16 @@ extension UtfStdout on Stdout {
     params.current = chunk;
 
     if (onWrite != null) {
-      result = (params.isSyncCall ? onWrite(params) : await onWrite(params))
-          as VisitResult;
+      if (params.isSyncCall) {
+        result = onWrite(params) as VisitResult;
+      } else {
+        result = await onWrite(params);
+      }
+      chunk = params.current ?? '';
     }
 
-    if (!result.isSkip) {
-      _byteWriter(encoder.convert(params.current!));
+    if (result.isTake) {
+      _byteWriter(encoder.convert(chunk));
     }
 
     return result;
@@ -191,10 +195,11 @@ extension UtfStdout on Stdout {
 
     if (onWrite != null) {
       result = onWrite(params);
+      chunk = params.current ?? '';
     }
 
-    if (!result.isSkip) {
-      _byteWriter(encoder.convert(params.current!));
+    if (result.isTake) {
+      _byteWriter(encoder.convert(chunk));
     }
 
     return result;

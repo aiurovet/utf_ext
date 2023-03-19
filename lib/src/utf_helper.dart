@@ -53,13 +53,12 @@ class UtfHelper {
       if (onRead != null) {
         params.current = line;
         result = onRead(params);
-        line = params.current ?? '';
-        params.current = chunk;
       }
+
 
       if (result.isTake) {
         ++params.takenNo;
-        pileup?.add(line);
+        pileup?.add(params.current ?? '');
       }
 
       if (result.isStop) {
@@ -120,30 +119,30 @@ class UtfHelper {
     maxLength ??= UtfConfig.bufferLength;
 
     final bytes = List<int>.filled(maxLength, 0);
-    var chunk = '';
+    var prev = '';
     final decoder = UtfDecoder(id, hasSink: false, onBom: onBom);
 
     for (var curLength = 0;; curLength = 0) {
       if (byteReader != null) {
         curLength = byteReader(bytes);
-
-        if (curLength == 0) {
-          if (asLines && chunk.isNotEmpty) {
-            _processReadChunkAsLinesSync(
-                params, onRead, withPosixLineBreaks, asLines);
-          }
-          break;
-        }
-
-        final next = decoder.convert(bytes, 0, curLength);
-
-        params.current =
-            chunk + (withPosixLineBreaks ? toPosixLineBreaks(next) : next);
-      } else if (chunk.isEmpty) {
-        break;
-      } else {
-        params.current = chunk;
       }
+
+      if (curLength == 0) {
+        if (asLines && prev.isNotEmpty) {
+          _processReadChunkAsLinesSync(
+              params, onRead, withPosixLineBreaks, asLines);
+        }
+        break;
+      }
+
+      var chunk = decoder.convert(bytes, 0, curLength);
+
+      if (withPosixLineBreaks) {
+        chunk = toPosixLineBreaks(chunk);
+      }
+
+      chunk = prev + chunk;
+      params.current = chunk;
 
       var end = 0;
 
@@ -158,12 +157,7 @@ class UtfHelper {
         break;
       }
 
-      chunk = params.current!;
-
-      if (end > 0) {
-        chunk = chunk.substring(end);
-        params.current = chunk;
-      }
+      prev = chunk.substring(end);
     }
   }
 
@@ -369,16 +363,18 @@ class UtfHelper {
       bool withPosixLineBreaks = true}) {
     var result = VisitResult.take;
 
-    ++params?.currentNo;
-
     if (!withPosixLineBreaks) {
       chunk = UtfHelper.fromPosixLineBreaks(chunk);
     }
 
-    params?.current = chunk;
+    if (params != null) {
+      ++params.currentNo;
+      params.current = chunk;
 
-    if ((onWrite != null) && (params != null)) {
-      result = onWrite(params);
+      if (onWrite != null) {
+        result = onWrite(params);
+        chunk = params.current ?? '';
+      }
     }
 
     if (result.isTake) {

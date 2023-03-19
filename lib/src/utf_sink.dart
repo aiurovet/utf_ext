@@ -143,19 +143,24 @@ extension UtfSink on IOSink {
       {UtfIoHandler? onWrite,
       UtfIoParams? params,
       bool withPosixLineBreaks = true}) async {
-    final isSyncCall = params?.isSyncCall ?? (onWrite is UtfIoHandlerSync);
     var result = VisitResult.take;
 
     if (!withPosixLineBreaks) {
       chunk = UtfHelper.fromPosixLineBreaks(chunk);
     }
 
-    ++params?.currentNo;
-    params?.current = chunk;
+    if (params != null) {
+      ++params.currentNo;
+      params.current = chunk;
 
-    if ((onWrite != null) && (params != null)) {
-      result =
-          (isSyncCall ? onWrite(params) : await onWrite(params)) as VisitResult;
+      if (onWrite != null) {
+        if (params.isSyncCall) {
+          result = onWrite(params) as VisitResult;
+        } else {
+          result = await onWrite(params);
+        }
+        chunk = params.current ?? '';
+      }
     }
 
     if (result.isTake) {
@@ -190,6 +195,7 @@ extension UtfSink on IOSink {
 
     if ((onWrite != null) && (params != null)) {
       result = onWrite(params);
+      chunk = params.current ?? '';
     }
 
     if (result.isTake) {
