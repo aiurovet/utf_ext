@@ -9,7 +9,7 @@
     { "name": "Cat  - Stdin", "request": "launch", "type": "dart", "program": "example/utf_cat.dart", "args": ["<", "data/utf.txt" ], "console": "terminal" },
 
     { "name": "Conv - Help",  "request": "launch", "type": "dart", "program": "example/utf_conv.dart", "args": ["-?"] },
-    { "name": "Conv - File",  "request": "launch", "type": "dart", "program": "example/utf_conv.dart", "args": ["data/utf.txt", "-s", "-u", "-l=0", "-t=utf8"] },
+    { "name": "Conv - File",  "request": "launch", "type": "dart", "program": "example/utf_conv.dart", "args": ["data/utf.txt", "-s", "-u", "-l=0", "-t=utf8", "-b=3"] },
     { "name": "Conv - Stdin", "request": "launch", "type": "dart", "program": "example/utf_conv.dart", "args": ["<", "data/utf.txt", "-t=utf16le" ], "console": "terminal" },
   ]
 }
