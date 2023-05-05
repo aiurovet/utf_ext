@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Breaking: ditched FutureOr
+
 ## 0.2.3
 
 - Website changed

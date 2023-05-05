@@ -26,7 +26,8 @@ extension UtfSink on IOSink {
   /// [lines] - the whole content broken into lines with no line break
   /// [extra] - user-defined data\
   /// [type] - UTF type\
-  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [onWrite] - a function called upon every chunk of text before being written (non-blocking)\
+  /// [onWriteSync] - a function called upon every chunk of text before being written (blocking)\
   /// [withBom] - if true (default if [type] is defined) byte order mark is printed\
   /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
   /// [lineBreakAtEnd] - if true (default), ensure the output ends with the line break
@@ -34,14 +35,14 @@ extension UtfSink on IOSink {
   Future<void> writeUtfAsLines(String id, List<String> lines,
       {dynamic extra,
       UtfIoHandler? onWrite,
+      UtfIoHandlerSync? onWriteSync,
       UtfType type = UtfType.none,
       bool? withBom,
       bool withPosixLineBreaks = true,
       bool lineBreakAtEnd = true}) async {
     final encoder = UtfEncoder(id,
         sink: this, type: type, withBom: withBom ?? (type != UtfType.none));
-    final isSyncCall = (onWrite is UtfIoHandlerSync);
-    final params = UtfIoParams(extra: extra, isSyncCall: isSyncCall);
+    final params = UtfIoParams(extra: extra, isSyncCall: (onWriteSync != null));
 
     for (final line in lines) {
       params.current = line;
@@ -57,6 +58,7 @@ extension UtfSink on IOSink {
 
       await writeUtfChunk(encoder, chunk,
           onWrite: onWrite,
+          onWriteSync: onWriteSync,
           params: params,
           withPosixLineBreaks: withPosixLineBreaks);
     }
@@ -68,7 +70,8 @@ extension UtfSink on IOSink {
   /// [content] - the whole content to write\
   /// [maxLength] - maximum buffer length (when null, use [UtfConfig.bufferLength])\
   /// [extra] - user-defined data\
-  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [onWrite] - a function called upon every chunk of text before being written (non-blocking)\
+  /// [onWriteSync] - a function called upon every chunk of text before being written (blocking)\
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is printed\
   /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
@@ -78,6 +81,7 @@ extension UtfSink on IOSink {
       {dynamic extra,
       int? maxLength,
       UtfIoHandler? onWrite,
+      UtfIoHandlerSync? onWriteSync,
       UtfType type = UtfType.none,
       bool? withBom,
       bool withPosixLineBreaks = true,
@@ -96,9 +100,8 @@ extension UtfSink on IOSink {
       maxLength = fullLength;
     }
 
-    final isSyncCall = onWrite is UtfIoHandlerSync;
-    final params =
-        UtfIoParams(extra: extra, isSyncCall: isSyncCall, pileup: content);
+    final params = UtfIoParams(
+        extra: extra, isSyncCall: (onWriteSync != null), pileup: content);
 
     var chunk = '';
     var chunkLength = maxLength;
@@ -120,6 +123,7 @@ extension UtfSink on IOSink {
 
       if ((await writeUtfChunk(encoder, chunk,
               onWrite: onWrite,
+              onWriteSync: onWriteSync,
               params: params,
               withPosixLineBreaks: withPosixLineBreaks))
           .isStop) {
@@ -135,12 +139,14 @@ extension UtfSink on IOSink {
   /// \
   /// [encoder] - the UTF ecoder\
   /// [chunk] - a chunk of text to convert and write\
-  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [onWrite] - a function called upon every chunk of text before being written (non-blocking)\
+  /// [onWriteSync] - a function called upon every chunk of text before being written (blocking)\
   /// [params] - current cvhunk info holder
   /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
   Future<VisitResult> writeUtfChunk(UtfEncoder encoder, String chunk,
       {UtfIoHandler? onWrite,
+      UtfIoHandlerSync? onWriteSync,
       UtfIoParams? params,
       bool withPosixLineBreaks = true}) async {
     var result = VisitResult.take;
@@ -154,13 +160,12 @@ extension UtfSink on IOSink {
       params.current = chunk;
 
       if (onWrite != null) {
-        if (params.isSyncCall) {
-          result = onWrite(params) as VisitResult;
-        } else {
-          result = await onWrite(params);
-        }
-        chunk = params.current ?? '';
+        result = await onWrite(params);
+      } else if (onWriteSync != null) {
+        result = onWriteSync(params);
       }
+
+      chunk = params.current ?? '';
     }
 
     if (result.isTake) {

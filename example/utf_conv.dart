@@ -28,6 +28,18 @@ final _logger = Logger();
 ///
 final _opts = Options();
 
+/// Internal class for convLine/Sync()
+///
+class ConvLineInfo {
+  /// Flag indicating the end of loop
+  ///
+  var canStop = false;
+
+  /// I/O buffer
+  ///
+  var buffer = '';
+}
+
 /// Command-line options
 ///
 class Options {
@@ -139,28 +151,33 @@ VisitResult convChunkSync(UtfIoParams params) {
 
 /// Write a line of text to the output sink (non-blocing)
 ///
-FutureOr<VisitResult> convLine(UtfIoParams params) async {
-  final maxLineCount = _opts.maxLineCount ?? 0;
-  final takenNo = params.takenNo + 1;
-  final canStop = ((maxLineCount > 0) && (takenNo >= maxLineCount));
+Future<VisitResult> convLine(UtfIoParams params) async {
+  final info = _convLine(params);
+  await (params.extra as OutInfo).writeUtfChunk(info.buffer);
 
-  final buffer = '${params.current!}${UtfConst.lineBreak}';
-  (params.extra as OutInfo).writeUtfChunkSync(buffer);
-
-  return (canStop ? VisitResult.takeAndStop : VisitResult.take);
+  return (info.canStop ? VisitResult.takeAndStop : VisitResult.take);
 }
 
-/// Write a line of text to the output sink (non-blocing)
+/// Write a line of text to the output sink (blocking)
 ///
 VisitResult convLineSync(UtfIoParams params) {
+  final info = _convLine(params);
+  (params.extra as OutInfo).writeUtfChunkSync(info.buffer);
+
+  return (info.canStop ? VisitResult.takeAndStop : VisitResult.take);
+}
+
+/// Write a line of text to the output sink (blocking)
+///
+ConvLineInfo _convLine(UtfIoParams params) {
   final maxLineCount = _opts.maxLineCount ?? 0;
   final takenNo = params.takenNo + 1;
-  final canStop = ((maxLineCount > 0) && (takenNo >= maxLineCount));
+  final result = ConvLineInfo();
 
-  final buffer = '${params.current!}${UtfConst.lineBreak}';
-  (params.extra as OutInfo).writeUtfChunkSync(buffer);
+  result.canStop = ((maxLineCount > 0) && (takenNo >= maxLineCount));
+  result.buffer = '${params.current!}${UtfConst.lineBreak}';
 
-  return (canStop ? VisitResult.takeAndStop : VisitResult.take);
+  return result;
 }
 
 /// Entry point

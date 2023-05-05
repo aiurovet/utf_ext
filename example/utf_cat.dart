@@ -85,12 +85,17 @@ class Options {
 /// Print byte order mark
 ///
 void catBom(UtfType type, bool isWrite) {
-  print('Byte Order Mark: $type');
+  final newLine = (_opts.paths.isEmpty ? '\n' : '');
+  stdout.write('Byte Order Mark: $type$newLine');
 }
 
 /// Print any chunk of text
 ///
-VisitResult catChunk(UtfIoParams params) {
+Future<VisitResult> catChunk(UtfIoParams params) async => catChunkSync(params);
+
+/// Print any chunk of text
+///
+VisitResult catChunkSync(UtfIoParams params) {
   stdout.write(params.current);
 
   return VisitResult.take;
@@ -98,8 +103,12 @@ VisitResult catChunk(UtfIoParams params) {
 
 /// Print any text (a block or a line)
 ///
-VisitResult catLine(UtfIoParams params) {
-  print(params.current);
+Future<VisitResult> catLine(UtfIoParams params) async => catLineSync(params);
+
+/// Print any text (a block or a line)
+///
+VisitResult catLineSync(UtfIoParams params) {
+  stdout.writeln(params.current);
 
   final maxLineCount = _opts.maxLineCount ?? 0;
   final takenNo = params.takenNo + 1;
@@ -147,13 +156,13 @@ Future<bool> processFile(String path) async {
 
   if (_opts.maxLineCount == null) {
     if (_opts.isSyncCall) {
-      file.readUtfAsStringSync(onBom: catBom, onRead: catChunk);
+      file.readUtfAsStringSync(onBom: catBom, onRead: catChunkSync);
     } else {
       await file.readUtfAsString(onBom: catBom, onRead: catChunk);
     }
   } else {
     if (_opts.isSyncCall) {
-      file.readUtfAsLinesSync(onBom: catBom, onRead: catLine);
+      file.readUtfAsLinesSync(onBom: catBom, onRead: catLineSync);
     } else {
       await file.readUtfAsLines(onBom: catBom, onRead: catLine);
     }
@@ -167,13 +176,13 @@ Future<bool> processFile(String path) async {
 Future<bool> processStdin() async {
   if (_opts.maxLineCount == null) {
     if (_opts.isSyncCall) {
-      stdin.readUtfAsStringSync(onBom: catBom, onRead: catChunk);
+      stdin.readUtfAsStringSync(onBom: catBom, onRead: catChunkSync);
     } else {
       await stdin.readUtfAsString(onBom: catBom, onRead: catChunk);
     }
   } else {
     if (_opts.isSyncCall) {
-      stdin.readUtfAsLinesSync(onBom: catBom, onRead: catLine);
+      stdin.readUtfAsLinesSync(onBom: catBom, onRead: catLineSync);
     } else {
       await stdin.readUtfAsLines(onBom: catBom, onRead: catLine);
     }

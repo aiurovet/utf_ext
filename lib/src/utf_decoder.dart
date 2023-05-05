@@ -1,3 +1,6 @@
+// Copyright (c) 2023, Alexander Iurovetski
+// All rights reserved under MIT license (see LICENSE file)
+
 import 'dart:convert';
 
 import 'package:utf_ext/utf_ext.dart';
@@ -7,7 +10,7 @@ class UtfDecoder extends Converter<List<int>, String> {
   ///
   final String? id;
 
-  /// UTF BOM handler
+  /// UTF BOM handler (non-blocking)
   ///
   UtfBomHandler? _onBom;
 

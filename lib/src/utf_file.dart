@@ -27,8 +27,9 @@ extension UtfFile on File {
   /// Loops through every line read from a file and calls a user-defined function (non-blocking)\
   /// \
   /// [extra] - user-defined data\
-  /// [onBom] - a function called upon the read of the byte order mark\
-  /// [onRead] - a function called upon every line of text after being read\
+  /// [onBom] - a function called upon the read of the byte order mark (blocking)\
+  /// [onRead] - a function called upon every line of text after being read (non-blocking)\
+  /// [onReadSync] - a function called upon every line of text after being read (blocking)\
   /// [pileup] - if not null, accumulate all lines under that\
   /// \
   /// Returns [pileup] if not null or an empty list otherwise
@@ -37,14 +38,15 @@ extension UtfFile on File {
           {dynamic extra,
           UtfBomHandler? onBom,
           UtfIoHandler? onRead,
+          UtfIoHandlerSync? onReadSync,
           List<String>? pileup}) async =>
-      await openUtfRead(onBom: onBom, asLines: true)
-          .readUtfAsLines(extra: extra, onRead: onRead, pileup: pileup);
+      await openUtfRead(onBom: onBom, asLines: true).readUtfAsLines(
+          extra: extra, onRead: onRead, onReadSync: onReadSync, pileup: pileup);
 
   /// Loops through every line read from a file and calls a user-defined function (blocking)\
   /// \
   /// [extra] - user-defined data\
-  /// [onBom] - a function called upon the read of the byte order mark\
+  /// [onBom] - a function called upon the read of the byte order mark (blocking)\
   /// [onRead] - a function called upon every line of text after being read\
   /// [pileup] - if not null, accumulates all lines of text\
   /// \
@@ -52,7 +54,7 @@ extension UtfFile on File {
   ///
   int readUtfAsLinesSync(
       {dynamic extra,
-      UtfBomHandlerSync? onBom,
+      UtfBomHandler? onBom,
       UtfIoHandlerSync? onRead,
       List<String>? pileup}) {
     final input = openSync(mode: FileMode.read);
@@ -75,8 +77,9 @@ extension UtfFile on File {
   /// Reads the UTF file content (non-blocking) and converts it to a string.\
   /// \
   /// [extra] - user-defined data\
-  /// [onBom] - a function called upon the read of the byte order mark\
-  /// [onRead] - a function called upon every chunk of text after being read\
+  /// [onBom] - a function called upon the read of the byte order mark (blocking)\
+  /// [onRead] - a function called upon every chunk of text after being read (non-blocking)\
+  /// [onReadSync] - a function called upon every chunk of text after being read (blocking)\
   /// [pileup] - if not null, accumulates the whole content under that\
   /// [withPosixLineBreaks] - if true (default) replace each CR/LF with LF
   /// \
@@ -86,18 +89,20 @@ extension UtfFile on File {
           {dynamic extra,
           UtfBomHandler? onBom,
           UtfIoHandler? onRead,
+          UtfIoHandlerSync? onReadSync,
           StringBuffer? pileup,
           bool? withPosixLineBreaks = true}) async =>
       await openUtfRead(onBom: onBom).readUtfAsString(
           extra: extra,
           onRead: onRead,
+          onReadSync: onReadSync,
           pileup: pileup,
           withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem);
 
   /// Reads the UTF file content (blocking) and converts it to a string.\
   /// \
   /// [extra] - user-defined data\
-  /// [onBom] - a function called upon the read of the byte order mark\
+  /// [onBom] - a function called upon the read of the byte order mark (blocking)\
   /// [onRead] - a function called upon every chunk of text after being read\
   /// [pileup] - if not null, accumulates the whole content under that\
   /// [withPosixLineBreaks] - if true (default) replace each CR/LF with LF
@@ -132,7 +137,8 @@ extension UtfFile on File {
   /// [lines] - the whole content broken into lines with no line break\
   /// [extra] - user-defined data\
   /// [mode] - write or append\
-  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [onWrite] - a function called upon every chunk of text before being written (non-blocking)\
+  /// [onWriteSync] - a function called upon every chunk of text before being written (blocking)\
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is printed
   /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
@@ -142,6 +148,7 @@ extension UtfFile on File {
       {dynamic extra,
       FileMode mode = FileMode.write,
       UtfIoHandler? onWrite,
+      UtfIoHandlerSync? onWriteSync,
       UtfType type = UtfType.none,
       bool? withBom,
       bool withPosixLineBreaks = true,
@@ -153,6 +160,7 @@ extension UtfFile on File {
           extra: extra,
           type: type,
           onWrite: onWrite,
+          onWriteSync: onWriteSync,
           withBom: withBom,
           withPosixLineBreaks: withPosixLineBreaks,
           lineBreakAtEnd: lineBreakAtEnd);
@@ -167,7 +175,7 @@ extension UtfFile on File {
   /// [lines] - the whole content broken into lines with no line break
   /// [extra] - user-defined data\
   /// [mode] - write or append\
-  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [onWrite] - a function called upon every chunk of text before being written (non-blocking)\
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is written
   /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
@@ -205,7 +213,8 @@ extension UtfFile on File {
   /// [content] - string to write (the whole content)\
   /// [mode] - write or append\
   /// [extra] - user-defined data\
-  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [onWrite] - a function called upon every chunk of text before being written (non-blocking)\
+  /// [onWriteSync] - a function called upon every chunk of text before being written (blocking)\
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is written
   /// [withPosixLineBreaks] - if true (default), use LF as a line break; otherwise, use CR/LF\
@@ -215,6 +224,7 @@ extension UtfFile on File {
       {dynamic extra,
       FileMode mode = FileMode.write,
       UtfIoHandler? onWrite,
+      UtfIoHandlerSync? onWriteSync,
       UtfType type = UtfType.none,
       bool? withBom,
       bool? withPosixLineBreaks = true,
@@ -225,6 +235,7 @@ extension UtfFile on File {
       await output.writeUtfAsString(path, content,
           extra: extra,
           onWrite: onWrite,
+          onWriteSync: onWriteSync,
           type: type,
           withBom: withBom,
           withPosixLineBreaks: withPosixLineBreaks ?? isPosixFileSystem,

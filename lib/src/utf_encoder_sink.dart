@@ -1,4 +1,6 @@
-import 'dart:async';
+// Copyright (c) 2023, Alexander Iurovetski
+// All rights reserved under MIT license (see LICENSE file)
+
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -174,8 +176,8 @@ class UtfEncoderSink extends StringConversionSinkBase {
 
   /// Initializer, called twice: in the beginning and once BOM found
   ///
-  FutureOr<void> _init(ByteConversionSink? byteConvSink, UtfType finalType,
-      bool? withBom) async {
+  void _init(
+      ByteConversionSink? byteConvSink, UtfType finalType, bool? withBom) {
     if (byteConvSink != null) {
       _byteConvSink = byteConvSink;
     }

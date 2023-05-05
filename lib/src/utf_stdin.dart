@@ -18,7 +18,7 @@ extension UtfStdin on Stdin {
   /// Loops through every line read from [stdin] and calls a user-defined function (non-blocking)\
   /// \
   /// [extra] - user-defined data\
-  /// [onBom] - a function called upon the read of the byte order mark\
+  /// [onBom] - a function called upon the read of the byte order mark (non-blocking)\
   /// [onRead] - a function called upon every line of text after being read\
   /// [pileup] - if not null, accumulate all lines under that\
   /// \
@@ -76,8 +76,9 @@ extension UtfStdin on Stdin {
   /// Reads the UTF content from [stdin] (non-blocking) and converts it to a string.\
   /// \
   /// [extra] - user-defined data\
-  /// [onBom] - a function called upon the read of the byte order mark\
-  /// [onRead] - a function called upon every chunk of text after being read\
+  /// [onBom] - a function called upon the read of the byte order mark (non-blocking)\
+  /// [onRead] - a function called upon every chunk of text after being read (non-blocking)\
+  /// [onReadSync] - a function called upon every chunk of text after being read (blocking)\
   /// [pileup] - if not null, accumulates all lines under that\
   /// [withPosixLineBreaks] - if true (default) replace CR/LF with LF
   /// \
@@ -87,12 +88,14 @@ extension UtfStdin on Stdin {
           {dynamic extra,
           UtfBomHandler? onBom,
           UtfIoHandler? onRead,
+          UtfIoHandlerSync? onReadSync,
           StringBuffer? pileup,
           bool? withPosixLineBreaks = true}) async =>
       await openUtfStringStream(UtfDecoder(name, onBom: onBom), asLines: false)
           .readUtfAsString(
               extra: extra,
               onRead: onRead,
+              onReadSync: onReadSync,
               pileup: pileup,
               withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS);
 

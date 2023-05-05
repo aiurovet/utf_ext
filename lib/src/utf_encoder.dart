@@ -1,3 +1,6 @@
+// Copyright (c) 2023, Alexander Iurovetski
+// All rights reserved under MIT license (see LICENSE file)
+
 import 'dart:convert';
 import 'dart:typed_data';
 

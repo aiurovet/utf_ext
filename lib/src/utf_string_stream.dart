@@ -11,18 +11,21 @@ extension UtfStringStream on Stream<String> {
   /// Loops through every line read from a stream and calls a user-defined function\
   /// \
   /// [extra] - user-defined data\
-  /// [onRead] - a function called upon every line of text after being read\
+  /// [onRead] - a function called upon every line of text after being read (non-blocking)\
+  /// [onReadSync] - a function called upon every line of text after being read (blocking)\
   /// [pileup] - if not null, accumulates all lines of text\
   /// \
   /// Returns [pileup] if not null or an empty list otherwise
   ///
   Future<int> readUtfAsLines(
-      {dynamic extra, UtfIoHandler? onRead, List<String>? pileup}) async {
+      {dynamic extra,
+      UtfIoHandler? onRead,
+      UtfIoHandlerSync? onReadSync,
+      List<String>? pileup}) async {
     pileup?.clear();
 
-    final isSyncCall = (onRead is UtfIoHandlerSync);
-    final params =
-        UtfIoParams(extra: extra, isSyncCall: isSyncCall, pileup: pileup);
+    final params = UtfIoParams(
+        extra: extra, isSyncCall: (onReadSync != null), pileup: pileup);
 
     var result = VisitResult.take;
 
@@ -31,7 +34,9 @@ extension UtfStringStream on Stream<String> {
       params.current = line;
 
       if (onRead != null) {
-        result = (isSyncCall ? onRead(params) : await onRead(params));
+        result = await onRead(params);
+      } else if (onReadSync != null) {
+        result = onReadSync(params);
       }
 
       if (result.isTake) {
@@ -50,7 +55,8 @@ extension UtfStringStream on Stream<String> {
   /// Loops through every line read from a stream and calls a user-defined function\
   /// \
   /// [extra] - user-defined data\
-  /// [onRead] - a function called upon every line of text after being read\
+  /// [onRead] - a function called upon every line of text after being read (non-blocking)\
+  /// [onReadSync] - a function called upon every line of text after being read (blocking)\
   /// [pileup] - if not null, accumulates the whole content\
   /// [withPosixLineBreaks] - if true (default) replace each CR/LF with LF
   /// \
@@ -59,13 +65,13 @@ extension UtfStringStream on Stream<String> {
   Future<int> readUtfAsString(
       {dynamic extra,
       UtfIoHandler? onRead,
+      UtfIoHandlerSync? onReadSync,
       StringBuffer? pileup,
       bool withPosixLineBreaks = true}) async {
     pileup?.clear();
 
-    final isSyncCall = (onRead is UtfIoHandlerSync);
-    final params =
-        UtfIoParams(extra: extra, isSyncCall: isSyncCall, pileup: pileup);
+    final params = UtfIoParams(
+        extra: extra, isSyncCall: (onReadSync != null), pileup: pileup);
 
     var result = VisitResult.take;
 
@@ -75,7 +81,9 @@ extension UtfStringStream on Stream<String> {
           (withPosixLineBreaks ? UtfHelper.toPosixLineBreaks(buffer) : buffer);
 
       if (onRead != null) {
-        result = (isSyncCall ? onRead(params) : await onRead(params));
+        result = await onRead(params);
+      } else if (onReadSync != null) {
+        result = onReadSync(params);
       }
 
       if (result.isTake) {

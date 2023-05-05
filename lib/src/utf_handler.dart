@@ -1,8 +1,6 @@
 // Copyright (c) 2023, Alexander Iurovetski
 // All rights reserved under MIT license (see LICENSE file)
 
-import 'dart:async';
-
 import 'package:loop_visitor/loop_visitor.dart';
 import 'package:utf_ext/utf_ext.dart';
 
@@ -14,13 +12,9 @@ typedef ByteReaderSync = int Function(List<int> bytes, [int start, int? end]);
 ///
 typedef ByteWriterSync = void Function(List<int> bytes, [int start, int? end]);
 
-/// Called while reading or writing UTF BOM (non-blocking or blocking)
+/// Called while reading or writing UTF BOM (always synchronous)
 ///
-typedef UtfBomHandler = FutureOr<void> Function(UtfType type, bool isWrite);
-
-/// Called while reading or writing UTF BOM (non-blocking or blocking)
-///
-typedef UtfBomHandlerSync = void Function(UtfType type, bool isWrite);
+typedef UtfBomHandler = void Function(UtfType type, bool isWrite);
 
 /// Called while reading UTF (non-blocking or blocking)
 ///

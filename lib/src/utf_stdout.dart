@@ -41,7 +41,8 @@ extension UtfStdout on Stdout {
   /// [lines] - the whole content broken into lines with no line break
   /// [extra] - user-defined data\
   /// [mode] - write (default) or append\
-  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [onWrite] - a function called upon every chunk of text before being written (non-blocking)\
+  /// [onWriteSync] - a function called upon every chunk of text before being written (blocking)\
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is printed
   /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
@@ -50,6 +51,7 @@ extension UtfStdout on Stdout {
           {dynamic extra,
           FileMode mode = FileMode.write,
           UtfIoHandler? onWrite,
+          UtfIoHandlerSync? onWriteSync,
           UtfType type = UtfType.none,
           bool? withBom,
           bool withPosixLineBreaks = true}) async =>
@@ -66,7 +68,7 @@ extension UtfStdout on Stdout {
   /// [lines] - the whole content broken into lines with no line break
   /// [extra] - user-defined data\
   /// [mode] - write (default) or append\
-  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [onWrite] - a function called upon every chunk of text before being written (non-blocking)\
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is printed
   /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
@@ -92,6 +94,7 @@ extension UtfStdout on Stdout {
   /// [extra] - user-defined data\
   /// [mode] - write (default) or append\
   /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [onWriteSync] - a function called upon every chunk of text before being written (blocking)\
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is printed
   /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
@@ -100,12 +103,14 @@ extension UtfStdout on Stdout {
           {dynamic extra,
           FileMode mode = FileMode.write,
           UtfIoHandler? onWrite,
+          UtfIoHandlerSync? onWriteSync,
           UtfType type = UtfType.none,
           bool? withBom,
           bool? withPosixLineBreaks = true}) async =>
       await writeUtfAsString(name, content,
           extra: extra,
           onWrite: onWrite,
+          onWriteSync: onWriteSync,
           type: type,
           withBom: withBom,
           withPosixLineBreaks: withPosixLineBreaks ?? isPosixOS,
@@ -116,7 +121,7 @@ extension UtfStdout on Stdout {
   /// [content] - the whole text to print
   /// [extra] - user-defined data\
   /// [mode] - write (default) or append\
-  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [onWrite] - a function called upon every chunk of text before being written (non-blocking)\
   /// [type] - UTF type
   /// [withBom] - if true (default if [type] is defined) byte order mark is printed
   /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
@@ -139,12 +144,14 @@ extension UtfStdout on Stdout {
   /// \
   /// [encoder] - UTF encoder
   /// [chunk] - chunk of text to print
-  /// [onWrite] - a function called upon every chunk of text before being written\
+  /// [onWrite] - a function called upon every chunk of text before being written (non-blocking)\
+  /// [onWriteSync] - a function called upon every chunk of text before being written (blocking)\
   /// [params] - current chunk info holder
   /// [withPosixLineBreaks] - if true (default) use LF as a line break; otherwise, use CR/LF
   ///
-  FutureOr<VisitResult> printUtfChunk(UtfEncoder encoder, String chunk,
+  Future<VisitResult> printUtfChunk(UtfEncoder encoder, String chunk,
       {UtfIoHandler? onWrite,
+      UtfIoHandlerSync? onWriteSync,
       UtfIoParams? params,
       bool? withPosixLineBreaks = true}) async {
     var result = VisitResult.take;
@@ -157,13 +164,12 @@ extension UtfStdout on Stdout {
     params.current = chunk;
 
     if (onWrite != null) {
-      if (params.isSyncCall) {
-        result = onWrite(params) as VisitResult;
-      } else {
-        result = await onWrite(params);
-      }
-      chunk = params.current ?? '';
+      result = await onWrite(params);
+    } else if (onWriteSync != null) {
+      result = onWriteSync(params);
     }
+
+    chunk = params.current ?? '';
 
     if (result.isTake) {
       _byteWriter(encoder.convert(chunk));

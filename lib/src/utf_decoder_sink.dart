@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -249,8 +248,7 @@ class UtfDecoderSink extends ByteConversionSinkBase {
 
   /// Initializer, called twice: in the constructor and once BOM is found
   ///
-  FutureOr<void> _init(
-      StringConversionSink? strConvSink, UtfType finalType) async {
+  void _init(StringConversionSink? strConvSink, UtfType finalType) {
     final isBomDone = ((strConvSink == null) || (strConvSink == _strConvSink));
 
     if (!isBomDone) {
@@ -266,11 +264,7 @@ class UtfDecoderSink extends ByteConversionSinkBase {
     _maxCharLength = _type.getMaxCharLength(false);
 
     if (isBomDone && (_onBom != null)) {
-      if (_onBom is UtfBomHandlerSync) {
-        _onBom!(finalType, false);
-      } else {
-        await _onBom!(finalType, false);
-      }
+      _onBom!(finalType, false);
     }
   }
 

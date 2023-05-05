@@ -21,7 +21,7 @@ void main() {
 
       test('onRead - bulk', () async {
         var wasCalled = false;
-        await file.readUtfAsString(onRead: (params) {
+        await file.readUtfAsString(onReadSync: (params) {
           wasCalled = true;
           return VisitResult.take;
         });
@@ -37,7 +37,7 @@ void main() {
       });
       test('onRead - line', () async {
         var wasCalled = false;
-        await file.readUtfAsLines(onRead: (params) {
+        await file.readUtfAsLines(onReadSync: (params) {
           wasCalled = true;
           return VisitResult.take;
         });
@@ -61,7 +61,7 @@ void main() {
       });
       test('onWrite - bulk - sync', () async {
         var wasCalled = false;
-        file.writeUtfAsString('A\nB', onWrite: (params) {
+        file.writeUtfAsString('A\nB', onWrite: (params) async {
           wasCalled = true;
           return VisitResult.take;
         });
