@@ -5,6 +5,8 @@ import 'dart:convert';
 
 import 'package:utf_ext/utf_ext.dart';
 
+/// Class to perform the actual decoding from UTF file/stream
+///
 class UtfDecoder extends Converter<List<int>, String> {
   /// Stream name, can be file path
   ///

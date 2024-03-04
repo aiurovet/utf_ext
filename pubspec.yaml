@@ -1,6 +1,6 @@
 name: utf_ext
 description: A library for reading and writing text files in any major Unicode format (UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE)
-version: 0.3.1
+version: 0.3.2
 homepage: https://aiurovet.com/
 repository: https://github.com/aiurovet/utf_ext/
 
@@ -10,7 +10,7 @@ environment:
 dependencies:
   async: ^2.11.0
   file: ^7.0.0
-  loop_visitor: ^0.4.0
+  loop_visitor: ^0.4.2
 
 dev_dependencies:
   file_ext: ^0.7.3

@@ -1,3 +1,7 @@
+## 0.3.2
+
+- Added missing docs
+
 ## 0.3.1
 
 - Upgraded packages

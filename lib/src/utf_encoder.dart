@@ -6,6 +6,8 @@ import 'dart:typed_data';
 
 import 'package:utf_ext/utf_ext.dart';
 
+/// Class to perform the actual encoding to UTF file/stream
+///
 class UtfEncoder extends Converter<String, List<int>> {
   /// Stream name, can be file path
   ///
