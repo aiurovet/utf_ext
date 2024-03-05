@@ -1,3 +1,7 @@
+## 0.3.3
+
+- Upgraded file_ext, loop_visitor and parse_args packages
+
 ## 0.3.2
 
 - Added missing docs
